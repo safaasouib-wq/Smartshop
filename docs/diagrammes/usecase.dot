@@ -1,0 +1,38 @@
+digraph UseCase {
+  rankdir=LR;
+  fontname="Helvetica"; node [fontname="Helvetica"]; edge [fontname="Helvetica", fontsize=10];
+  labelloc="t"; label="Diagramme de cas d'utilisation — SmartShop Assistant"; fontsize=16;
+
+  // Acteurs
+  client [label="Client", shape=plaintext, fontsize=12, image="", xlabel=""];
+  commercant [label="Commerçant", shape=plaintext, fontsize=12];
+  llm [label="Service LLM\n(externe)", shape=plaintext, fontsize=12];
+
+  node [shape=ellipse, style=filled, fillcolor="#e8f0fe", fontsize=11];
+
+  subgraph cluster_sys {
+    label="Système SmartShop Assistant"; style=rounded; color=gray40; fontsize=13;
+    uc1 [label="Poser une question\n(prix, dispo, horaires)"];
+    uc2 [label="Passer une\ncommande"];
+    uc3 [label="Demander un\nhumain"];
+    uc4 [label="Consulter les\ninformations réelles (BDD)"];
+    uc5 [label="Escalader la\nconversation"];
+    uc6 [label="Gérer le catalogue\n(CRUD produits)"];
+    uc7 [label="Gérer les commandes\n(statuts)"];
+    uc8 [label="Superviser les\nconversations"];
+    uc9 [label="Répondre au client /\nrendre la main à l'IA"];
+    uc10 [label="S'authentifier\n(JWT)"];
+    uc11 [label="Consulter les\nstatistiques"];
+  }
+
+  client -> uc1; client -> uc2; client -> uc3;
+  uc1 -> uc4 [label="«include»", style=dashed];
+  uc2 -> uc4 [label="«include»", style=dashed];
+  uc3 -> uc5 [label="«include»", style=dashed];
+  uc2 -> uc5 [label="«extend»\n(échec/incompréhension)", style=dashed];
+  uc4 -> llm [dir=back, label="function calling"];
+  commercant -> uc6; commercant -> uc7; commercant -> uc8; commercant -> uc9; commercant -> uc11;
+  uc6 -> uc10 [label="«include»", style=dashed];
+  uc7 -> uc10 [label="«include»", style=dashed];
+  uc8 -> uc10 [label="«include»", style=dashed];
+}

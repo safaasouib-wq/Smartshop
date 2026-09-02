@@ -1,0 +1,36 @@
+digraph Deploiement {
+  fontname="Helvetica"; rankdir=LR; compound=true;
+  labelloc="t"; label="Diagramme de déploiement — SmartShop Assistant"; fontsize=16;
+  node [shape=box3d, fontname="Helvetica", fontsize=10, style=filled, fillcolor="#f5f5f5"];
+  edge [fontname="Helvetica", fontsize=9];
+
+  subgraph cluster_ext {
+    label="Services externes (Internet)"; style=rounded; color=gray50;
+    tg [label="Serveurs Telegram\n(Bot API)", fillcolor="#e8f0fe"];
+    wa [label="Meta WhatsApp\nCloud API (option)", fillcolor="#e8f0fe", style="filled,dashed"];
+    llm [label="Fournisseur LLM\n(Groq / Ollama local)", fillcolor="#e8f0fe"];
+  }
+
+  subgraph cluster_srv {
+    label="Serveur de déploiement (Docker)"; style=rounded; color=gray50;
+    subgraph cluster_back {
+      label="Conteneur backend"; style=rounded; color=gray70;
+      api [label="FastAPI\n(uvicorn :8000)\n« artefact : app »", shape=component, fillcolor="#d4edda"];
+    }
+    subgraph cluster_db {
+      label="Conteneur db"; style=rounded; color=gray70;
+      pg [label="PostgreSQL 16\n(:5432)", shape=cylinder, fillcolor="#d1ecf1"];
+    }
+  }
+
+  nav [label="Navigateur du\ncommerçant\n(Dashboard React)", shape=box, fillcolor="#fff3cd"];
+  mobile [label="Smartphone\ndu client\n(app Telegram)", shape=box, fillcolor="#fff3cd"];
+
+  mobile -> tg [label="messages"];
+  tg -> api [label="HTTPS webhook\n/webhook/telegram"];
+  api -> tg [label="HTTPS sendMessage"];
+  wa -> api [label="(option)", style=dashed];
+  api -> llm [label="HTTPS\nchat/completions"];
+  api -> pg [label="TCP 5432\n(SQLAlchemy)"];
+  nav -> api [label="HTTPS REST\n/api/* (JWT)"];
+}

@@ -1,0 +1,31 @@
+# === Secrets / variables d'environnement (NE JAMAIS committer) ===
+.env
+backend/.env
+*.env
+!.env.example
+
+# === Python ===
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# === Base de données locale (dev/test) ===
+*.db
+*.sqlite3
+backend/smartshop.db
+
+# === Node / frontend ===
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# === Éditeurs / OS ===
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log

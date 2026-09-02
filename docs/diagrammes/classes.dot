@@ -1,0 +1,41 @@
+digraph Classes {
+  fontname="Helvetica"; rankdir=TB; splines=polyline; nodesep=0.6;
+  labelloc="t"; label="Diagramme de classes (couches principales) — SmartShop Assistant"; fontsize=16;
+  node [shape=record, fontname="Helvetica", fontsize=10, style=filled, fillcolor="#f5f5f5"];
+  edge [fontname="Helvetica", fontsize=9];
+
+  MessagingChannel [fillcolor="#fff3cd", label="{«interface»\nMessagingChannel|+ nom_canal : str|+ parse_update(payload) : IncomingMessage\l+ send_message(id, texte)\l}"];
+  TelegramChannel [label="{TelegramChannel|+ nom_canal = \"telegram\"|+ parse_update(payload)\l+ send_message(id, texte)\l}"];
+  WhatsAppChannel [style="filled,dashed", label="{WhatsAppChannel\n(extension)|+ nom_canal = \"whatsapp\"|...}"];
+  IncomingMessage [fillcolor="#e8f0fe", label="{IncomingMessage|+ canal : str\l+ identifiant_canal : str\l+ nom_client : str\l+ texte : str\l|}"];
+
+  Engine [fillcolor="#d4edda", label="{MoteurIA (engine)|+ MAX_TOOL_ITERATIONS : int|+ generer_reponse(db, conversation) : str\l- _construire_messages(db, conv)\l}"];
+  Tools [fillcolor="#d4edda", label="{Outils IA (tools)|+ TOOLS : list|+ executer_outil(db, conv, nom, args) : str\l}"];
+
+  Services [fillcolor="#d1ecf1", label="{Services métier|+ get_or_create_client()\l+ get_or_create_conversation()\l+ chercher_produits()\l+ creer_commande()\l+ escalader()\l+ rendre_a_lia()\l|}"];
+
+  Commerce [label="{Commerce|+ id, nom, adresse\l+ horaires, message_accueil\l|}"];
+  Produit [label="{Produit|+ id, nom, prix\l+ stock, categorie, actif\l|}"];
+  Client [label="{Client|+ id, identifiant_canal\l+ canal, nom\l|}"];
+  Conversation [label="{Conversation|+ id, statut, gere_par\l|}"];
+  Message [label="{Message|+ id, emetteur, contenu\l+ horodatage\l|}"];
+  Commande [label="{Commande|+ id, statut, total\l|}"];
+  LigneCommande [label="{LigneCommande|+ quantite, prix_unitaire\l|}"];
+  Escalade [label="{Escalade|+ raison, statut, date\l|}"];
+
+  TelegramChannel -> MessagingChannel [arrowhead=onormal, style=dashed, label="implémente"];
+  WhatsAppChannel -> MessagingChannel [arrowhead=onormal, style=dashed];
+  TelegramChannel -> IncomingMessage [arrowhead=vee, label="produit"];
+  Engine -> Tools [arrowhead=vee, label="utilise"];
+  Tools -> Services [arrowhead=vee, label="appelle"];
+  Engine -> Services [arrowhead=vee];
+
+  Commerce -> Produit [dir=back, arrowtail=diamond, label="1..*"];
+  Client -> Conversation [dir=back, arrowtail=odiamond, label="1..*"];
+  Conversation -> Message [dir=back, arrowtail=diamond, label="1..*"];
+  Commande -> LigneCommande [dir=back, arrowtail=diamond, label="1..*"];
+  LigneCommande -> Produit [arrowhead=vee, label="référence"];
+  Client -> Commande [dir=back, arrowtail=odiamond, label="0..*"];
+  Conversation -> Escalade [dir=back, arrowtail=odiamond, label="0..*"];
+  Services -> Produit [arrowhead=vee, style=dotted]; Services -> Commande [arrowhead=vee, style=dotted];
+}

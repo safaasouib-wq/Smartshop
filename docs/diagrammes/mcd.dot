@@ -1,0 +1,25 @@
+digraph MCD {
+  fontname="Helvetica"; rankdir=LR; nodesep=0.5;
+  labelloc="t"; label="Modèle de données (schéma relationnel) — SmartShop Assistant"; fontsize=16;
+  node [shape=record, fontname="Helvetica", fontsize=10, style=filled, fillcolor="#eef7ee"];
+  edge [fontname="Helvetica", fontsize=9];
+
+  commerces [label="{COMMERCES|id (PK)\lnom, description\ladresse, telephone\lhoraires, message_accueil\l}"];
+  produits [label="{PRODUITS|id (PK)\lcommerce_id (FK)\lnom, description, prix\lstock, categorie, actif\l}"];
+  clients [label="{CLIENTS|id (PK)\lidentifiant_canal, canal\lnom, telephone\ldate_premier_contact\l}"];
+  conversations [label="{CONVERSATIONS|id (PK)\lclient_id (FK)\lstatut, gere_par\l}"];
+  messages [label="{MESSAGES|id (PK)\lconversation_id (FK)\lemetteur, contenu\lhorodatage\l}"];
+  commandes [label="{COMMANDES|id (PK)\lclient_id (FK)\lconversation_id (FK)\lstatut, total\l}"];
+  lignes [label="{LIGNES_COMMANDE|id (PK)\lcommande_id (FK)\lproduit_id (FK)\lquantite, prix_unitaire\l}"];
+  utilisateurs [label="{UTILISATEURS|id (PK)\lemail (unique)\lmot_de_passe_hache, role\l}", fillcolor="#fde8e8"];
+  escalades [label="{ESCALADES|id (PK)\lconversation_id (FK)\lraison, statut, date\l}"];
+
+  commerces -> produits [label="1,N possède"];
+  clients -> conversations [label="1,N engage"];
+  conversations -> messages [label="1,N contient"];
+  clients -> commandes [label="1,N passe"];
+  conversations -> commandes [label="0,N génère", style=dashed];
+  commandes -> lignes [label="1,N compose"];
+  produits -> lignes [label="1,N référencé par"];
+  conversations -> escalades [label="0,N déclenche"];
+}
