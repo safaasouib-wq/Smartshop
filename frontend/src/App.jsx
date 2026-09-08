@@ -41,7 +41,8 @@ function Login({ onOk }) {
 }
 
 // ------------------------------------------------------------------ Statistiques (F5.7)
-// Résumé IA de la journée : chiffres réels agrégés + synthèse en langage naturel (LLM).
+// Résumé IA de la journée : structure claire pour le commerçant —
+//   1) phrase de synthèse (LLM)  2) chiffres clés en tuiles  3) bloc « À surveiller ».
 function ResumeIA() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -50,27 +51,68 @@ function ResumeIA() {
     api.resumeJour().then(setData).catch(console.error).finally(() => setLoading(false))
   }, [])
   useEffect(() => { charger() }, [charger])
+
   const f = data?.faits
+  const dateJour = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  const tuiles = f ? [
+    ['💰', `${f.chiffre_affaires_dh} DH`, "Chiffre d'affaires"],
+    ['🧾', f.commandes, 'Commandes'],
+    ['🛒', `${f.panier_moyen_dh} DH`, 'Panier moyen'],
+    ['🏆', f.top_produits?.[0]?.nom || '—', 'Produit vedette'],
+  ] : []
+  const aSurveiller = f ? [
+    f.commandes_en_cours > 0 && ['🚚', `${f.commandes_en_cours} commande(s) en cours`, 'text-blue-700 bg-blue-50 border-blue-200'],
+    f.clients_a_rappeler > 0 && ['🙋', `${f.clients_a_rappeler} client(s) à rappeler`, 'text-orange-700 bg-orange-50 border-orange-200'],
+    f.alertes_stock > 0 && ['⚠️', `${f.alertes_stock} produit(s) en stock faible`, 'text-red-700 bg-red-50 border-red-200'],
+  ].filter(Boolean) : []
+
   return (
-    <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl shadow p-5 mb-5">
-      <div className="flex items-center justify-between">
+    <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl shadow p-5 mb-5">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="font-semibold text-amber-900 flex items-center gap-2">🤖 Résumé IA de la journée</h3>
-        <button onClick={charger} disabled={loading}
-                className="text-amber-700 text-sm hover:underline disabled:opacity-50">↻ Actualiser</button>
+        <div className="flex items-center gap-3">
+          <span className="text-amber-700/80 text-sm capitalize">{dateJour}</span>
+          <button onClick={charger} disabled={loading}
+                  className="text-amber-700 text-sm hover:underline disabled:opacity-50">↻ Actualiser</button>
+        </div>
       </div>
+
       {loading ? (
-        <p className="text-amber-800/70 mt-2 text-sm">Génération du résumé…</p>
-      ) : data?.resume ? (
-        <p className="text-amber-900 mt-2 leading-relaxed">{data.resume}</p>
-      ) : f ? (
-        <p className="text-amber-900 mt-2 leading-relaxed">
-          {f.commandes} commande(s) aujourd'hui · {f.chiffre_affaires_dh} DH · panier moyen {f.panier_moyen_dh} DH
-          {f.top_produits?.[0] && <> · vedette : {f.top_produits[0].nom}</>}
-          {f.clients_a_rappeler > 0 && <> · {f.clients_a_rappeler} à rappeler</>}
-          {f.alertes_stock > 0 && <> · {f.alertes_stock} alerte(s) stock</>}
-        </p>
+        <p className="text-amber-800/70 mt-3 text-sm">Génération du résumé…</p>
+      ) : !f ? (
+        <p className="text-amber-800/70 mt-3 text-sm">Aucune donnée pour aujourd'hui.</p>
       ) : (
-        <p className="text-amber-800/70 mt-2 text-sm">Aucune donnée.</p>
+        <>
+          {/* 1) Synthèse en une phrase */}
+          {data.resume && (
+            <p className="text-amber-900 mt-2 italic leading-relaxed">« {data.resume} »</p>
+          )}
+
+          {/* 2) Chiffres clés */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+            {tuiles.map(([ico, val, lib]) => (
+              <div key={lib} className="bg-white rounded-lg p-3 text-center shadow-sm">
+                <div className="text-xl">{ico}</div>
+                <div className="text-lg font-bold text-gray-800 truncate" title={String(val)}>{val}</div>
+                <div className="text-xs text-gray-500">{lib}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* 3) À surveiller / à faire */}
+          <div className="mt-4">
+            <div className="text-xs font-semibold uppercase tracking-wide text-amber-800/70 mb-2">À surveiller</div>
+            {aSurveiller.length ? (
+              <div className="flex flex-wrap gap-2">
+                {aSurveiller.map(([ico, txt, cls]) => (
+                  <span key={txt} className={`text-sm px-3 py-1.5 rounded-full border ${cls}`}>{ico} {txt}</span>
+                ))}
+              </div>
+            ) : (
+              <span className="text-sm text-emerald-700">✅ Rien à signaler, tout est à jour.</span>
+            )}
+          </div>
+        </>
       )}
     </div>
   )
