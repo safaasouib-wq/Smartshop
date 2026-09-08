@@ -85,6 +85,8 @@ docker-compose exec backend python seed.py   # données de démo (pâtisserie + 
 - Dashboard : http://localhost:5173/admin — compte `admin@smartshop.ma` / `admin123`
 - Vitrine publique : http://localhost:5173/
 
+> Le service `frontend` est un **nginx** qui sert le bundle Vite et relaie `/api`, `/webhook` et `/docs` vers le backend (même origine → pas de CORS).
+
 ### 3 bis. Lancement local sans Docker (dev)
 
 ```bash
@@ -115,6 +117,39 @@ Envoyer à ton bot sur Telegram :
 - `chno kayn 3ndkom ?` → l'IA liste le catalogue réel
 - `Bghit ncommandi 2 boîtes cornes de gazelle` → prise de commande avec récapitulatif
 - `Bghit nhder m3a chi wa7ed` → escalade vers le commerçant
+
+## CI/CD (GitHub Actions)
+
+Pipeline défini dans `.github/workflows/ci-cd.yml`, déclenché sur *push* `main`, tags `v*`, *pull request* et manuellement.
+
+| Stage | Job | Contenu |
+|---|---|---|
+| **Build + Test** | `backend` | Python 3.12, cache pip, vérification d'import de l'app, **pytest** (55 tests, SQLite en mémoire — aucun secret requis), rapport JUnit en artefact |
+| **Build** | `frontend` | Node 20, cache npm, `npm ci` + `npm run build`, bundle `dist/` en artefact |
+| **Deploy** | `publier-images` | Build **multi-images** (backend + frontend) et push vers **ghcr.io** avec cache de build GitHub. Ignoré sur les pull requests |
+
+Images publiées (tags : `latest`, `main`, `sha-xxxxxxx`, `vX.Y.Z`) :
+
+```
+ghcr.io/safaasouib-wq/smartshop/backend
+ghcr.io/safaasouib-wq/smartshop/frontend
+```
+
+Aucun secret à configurer : le job utilise le `GITHUB_TOKEN` intégré (`packages: write`).
+Après le premier run, rendre les packages publics si besoin : *repo → Packages → Package settings → Change visibility*.
+
+### Déploiement depuis les images publiées
+
+```bash
+cp .env.example .env          # renseigner les tokens sur le serveur
+docker login ghcr.io -u <utilisateur> -p <token>
+export IMAGE_TAG=latest       # ou sha-1a2b3c4 / v1.0.0 pour un rollback
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml exec backend python seed.py   # 1re fois
+```
+
+La vitrine est alors sur le port **80**, le backend n'est pas exposé publiquement (accessible uniquement via le proxy nginx).
 
 ## Structure du code
 

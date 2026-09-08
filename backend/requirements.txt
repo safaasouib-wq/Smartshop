@@ -9,4 +9,5 @@ passlib==1.7.*
 bcrypt==4.0.1          # passlib 1.7 est incompatible avec bcrypt >=4.1 (plante à l'init)
 python-jose[cryptography]==3.3.*
 python-multipart==0.0.*
+fpdf2==2.8.*          # génération des PDF (attestations, tickets, rapports)
 anyio==4.*
