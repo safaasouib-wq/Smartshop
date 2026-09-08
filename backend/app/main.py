@@ -31,10 +31,12 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS pour le dashboard React en développement
+# CORS : dev local + filet de sécurité pour les domaines Render (*.onrender.com),
+# au cas où le rewrite du site statique frontend ne serait pas (encore) configuré.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origin_regex=r"https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

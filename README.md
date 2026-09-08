@@ -151,6 +151,21 @@ docker compose -f docker-compose.prod.yml exec backend python seed.py   # 1re fo
 
 La vitrine est alors sur le port **80**, le backend n'est pas exposé publiquement (accessible uniquement via le proxy nginx).
 
+## Déploiement Render.com (gratuit, sans carte bancaire)
+
+`render.yaml` à la racine décrit un **Blueprint** Render : PostgreSQL + backend (Docker) + frontend (site statique).
+
+1. Créer un compte sur [render.com](https://render.com) (connexion avec GitHub).
+2. Dashboard → **New +** → **Blueprint** → sélectionner le repo `Smartshop` → Render détecte `render.yaml` et propose de créer les 3 ressources.
+3. Après création, aller dans **smartshop-backend → Environment** et renseigner manuellement les variables marquées `sync: false` :
+   - `LLM_API_KEY` (clé gratuite sur console.groq.com)
+   - `TELEGRAM_BOT_TOKEN` (créé via @BotFather)
+   - `TELEGRAM_COMMERCANT_CHAT_ID` (optionnel)
+4. `smartshop-frontend` (site statique) fait un `npm run build` puis sert `dist/`, avec des règles de *rewrite* qui proxient `/api`, `/webhook`, `/docs` vers l'URL du backend — même origine côté navigateur, aucun souci CORS.
+5. Une fois les deux services « Live », lancer le seed via le **Shell** de `smartshop-backend` dans le dashboard Render : `python seed.py`.
+
+⚠️ Limites du plan gratuit Render : le service backend s'endort après 15 min d'inactivité (redémarre en ~30-50s au premier appel suivant) ; la base PostgreSQL gratuite expire après 90 jours (à recréer). Suffisant pour une démo / soutenance de PFA.
+
 ## Structure du code
 
 ```
