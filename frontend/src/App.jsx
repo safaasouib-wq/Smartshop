@@ -53,7 +53,7 @@ function ResumeIA() {
   useEffect(() => { charger() }, [charger])
 
   const f = data?.faits
-  const dateJour = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
   const tuiles = f ? [
     ['💰', `${f.chiffre_affaires_dh} DH`, "Chiffre d'affaires"],
     ['🧾', f.commandes, 'Commandes'],
@@ -69,9 +69,9 @@ function ResumeIA() {
   return (
     <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl shadow p-5 mb-5">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h3 className="font-semibold text-amber-900 flex items-center gap-2">🤖 Résumé IA de la journée</h3>
+        <h3 className="font-semibold text-amber-900 flex items-center gap-2">🤖 Résumé IA — dernières 24 h</h3>
         <div className="flex items-center gap-3">
-          <span className="text-amber-700/80 text-sm capitalize">{dateJour}</span>
+          <span className="text-amber-700/80 text-sm">mis à jour à {heure}</span>
           <button onClick={charger} disabled={loading}
                   className="text-amber-700 text-sm hover:underline disabled:opacity-50">↻ Actualiser</button>
         </div>

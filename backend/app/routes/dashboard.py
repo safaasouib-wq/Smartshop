@@ -5,7 +5,7 @@ La documentation interactive est disponible sur /docs (Swagger, NF10).
 """
 import json
 from collections import Counter
-from datetime import datetime, time as dtime, timedelta
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
@@ -80,10 +80,11 @@ def vitrine(db: Session = Depends(get_db)):
 
 @router.get("/resume-jour")
 def resume_jour(db: Session = Depends(get_db), _=Depends(exiger("stats"))):
-    """Synthèse IA de l'activité du jour pour le commerçant : chiffres RÉELS agrégés depuis la
-    base, puis résumé en langage naturel généré par le LLM. Repli gracieux si le LLM échoue
-    (on renvoie quand même les faits bruts pour l'affichage)."""
-    debut = datetime.combine(utcnow().date(), dtime.min)
+    """Synthèse IA de l'activité des dernières 24 h pour le commerçant : chiffres RÉELS agrégés
+    depuis la base, puis résumé en langage naturel généré par le LLM. Repli gracieux si le LLM
+    échoue (on renvoie quand même les faits bruts pour l'affichage). Fenêtre glissante de 24 h
+    (plutôt que « depuis minuit ») pour que le résumé ne soit jamais vide tôt le matin."""
+    debut = utcnow() - timedelta(hours=24)
     cmds = (db.query(models.Commande)
             .filter(models.Commande.date_creation >= debut).all())
     ca = round(sum(c.total for c in cmds), 2)
@@ -114,11 +115,11 @@ def resume_jour(db: Session = Depends(get_db), _=Depends(exiger("stats"))):
     try:
         from app.ai.engine import client_llm, nettoyer_markdown
         from app.config import settings
-        sys = ("Tu es l'assistant du commerçant d'une pâtisserie. À partir des chiffres du jour, "
-               "rédige un résumé COURT (2 à 3 phrases), chaleureux et actionnable, en français. "
-               "Mets en avant ce qui compte (ventes, produit vedette, ce qu'il reste à faire). "
-               "Texte simple, sans markdown, sans tableau.")
-        usr = "Données du jour : " + json.dumps(faits, ensure_ascii=False)
+        sys = ("Tu es l'assistant du commerçant d'une pâtisserie. À partir des chiffres des "
+               "dernières 24 h, rédige un résumé COURT (2 à 3 phrases), chaleureux et actionnable, "
+               "en français. Mets en avant ce qui compte (ventes, produit vedette, ce qu'il reste "
+               "à faire). Texte simple, sans markdown, sans tableau.")
+        usr = "Données des dernières 24 h : " + json.dumps(faits, ensure_ascii=False)
         r = client_llm.chat.completions.create(
             model=settings.LLM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": usr}],
