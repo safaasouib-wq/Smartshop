@@ -15,6 +15,16 @@ from app.utils import utcnow
 
 FENETRE_ANTI_DOUBLON = timedelta(minutes=5)  # une commande identique dans ce délai = doublon du LLM
 
+# Noms marocains (darija) affichables entre parenthèses pour les produits au nom français.
+# Sert UNIQUEMENT à l'affichage ; la commande utilise toujours le nom exact du catalogue.
+# (Chebakia, Msemen, Baghrir sont déjà des noms darija → pas d'alias.)
+ALIAS_DARIJA = {
+    "Cornes de gazelle": "Kaab lghzal",
+    "Gâteau d'anniversaire": "Gato",
+    "Tarte au citron": "Tarte dyal l7amd",
+    "Briouates aux amandes": "Briwat dyal louz",
+}
+
 # ------------------------------------------------------------------ Schémas des outils
 
 TOOLS = [
@@ -159,6 +169,16 @@ def _etat_lisible(cmd: models.Commande) -> str:
     return "reçue, en attente de préparation"
 
 
+def _produit_dict(p: models.Produit) -> dict:
+    """Représentation JSON d'un produit pour le LLM (+ alias darija si le nom est français)."""
+    d = {"id": p.id, "nom": p.nom, "prix_dh": p.prix,
+         "stock": p.stock, "categorie": p.categorie, "description": p.description}
+    alias = ALIAS_DARIJA.get(p.nom)
+    if alias:
+        d["alias_darija"] = alias
+    return d
+
+
 def executer_outil(db: Session, conversation: models.Conversation,
                    nom: str, arguments: dict) -> str:
     """Exécute la fonction demandée par le LLM et retourne le résultat en JSON (string)."""
@@ -171,20 +191,11 @@ def executer_outil(db: Session, conversation: models.Conversation,
             db.commit()
         except Exception:
             db.rollback()
-        return json.dumps([
-            {"id": p.id, "nom": p.nom, "prix_dh": p.prix,
-             "stock": p.stock, "categorie": p.categorie,
-             "description": p.description}
-            for p in produits
-        ], ensure_ascii=False)
+        return json.dumps([_produit_dict(p) for p in produits], ensure_ascii=False)
 
     if nom == "lister_produits":
         produits = services.lister_produits(db, arguments.get("categorie") or None)
-        return json.dumps([
-            {"id": p.id, "nom": p.nom, "prix_dh": p.prix,
-             "stock": p.stock, "categorie": p.categorie, "description": p.description}
-            for p in produits
-        ], ensure_ascii=False)
+        return json.dumps([_produit_dict(p) for p in produits], ensure_ascii=False)
 
     if nom == "obtenir_infos_commerce":
         c = services.infos_commerce(db)
@@ -284,10 +295,7 @@ def executer_outil(db: Session, conversation: models.Conversation,
         dispo = [p for p in services.lister_produits(db, cat)
                  if p.stock > 0 and p.nom.lower() != exclure]
         dispo.sort(key=lambda p: ventes.get(p.id, 0) or 0, reverse=True)
-        return json.dumps([
-            {"nom": p.nom, "prix_dh": p.prix, "categorie": p.categorie}
-            for p in dispo[:3]
-        ], ensure_ascii=False)
+        return json.dumps([_produit_dict(p) for p in dispo[:3]], ensure_ascii=False)
 
     if nom == "consulter_notes_client":
         client = conversation.client
