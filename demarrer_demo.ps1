@@ -1,17 +1,20 @@
 # ============================================================================
-#  SmartShop — Démarrage de la démo (soutenance PC-only) en UNE commande.
+#  SmartShop - Demarrage de la demo (soutenance PC-only) en UNE commande.
 #
-#  Lance dans le bon ordre :
-#    1. Nettoyage des anciens process (évite les "process fantômes" sur :8000)
-#    2. Backend  FastAPI            -> http://127.0.0.1:8000
+#  Lance dans l'ordre :
+#    1. Nettoyage des anciens process (evite les process fantomes sur :8000)
+#    2. Backend  FastAPI              -> http://127.0.0.1:8000
 #    3. Frontend Vite (vitrine+admin) -> http://localhost:5173
-#    4. Tunnel cloudflared -> backend  (nécessaire UNIQUEMENT pour le bot Telegram)
+#    4. Tunnel cloudflared -> backend  (necessaire UNIQUEMENT pour le bot Telegram)
 #    5. setWebhook Telegram automatique sur la nouvelle URL du tunnel
 #
-#  Usage (dans un terminal PowerShell, depuis n'importe où) :
+#  Usage (dans un terminal PowerShell, depuis n'importe ou) :
 #     powershell -ExecutionPolicy Bypass -File D:\Projets\smartshop\demarrer_demo.ps1
 #
-#  Pour tout arrêter : .\arreter_demo.ps1
+#  Pour tout arreter : .\arreter_demo.ps1
+#
+#  NOTE : fichier volontairement en ASCII pur (pas d'accents) pour eviter les
+#  erreurs de parsing de Windows PowerShell 5.1 quand le .ps1 n'a pas de BOM.
 # ============================================================================
 $ErrorActionPreference = 'Continue'
 $root     = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -21,7 +24,7 @@ $py       = Join-Path $backend '.venv\Scripts\python.exe'
 $logDir   = Join-Path $env:TEMP 'smartshop-demo'
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
-# Résolution de cloudflared (PATH, sinon emplacement d'installation par défaut)
+# Resolution de cloudflared (PATH, sinon emplacement d'installation par defaut)
 $cf = (Get-Command cloudflared -ErrorAction SilentlyContinue).Source
 if (-not $cf) { $cf = 'C:\Program Files (x86)\cloudflared\cloudflared.exe' }
 
@@ -40,23 +43,22 @@ Write-Host 'OK' -ForegroundColor Green
 
 # ---------------------------------------------------------------- 2. Backend
 Titre 'Backend FastAPI (:8000)'
-$env:PYTHONUTF8 = '1'; $env:PYTHONUNBUFFERED = '1'   # hérité par le process enfant
+$env:PYTHONUTF8 = '1'; $env:PYTHONUNBUFFERED = '1'   # herite par le process enfant
 Start-Process -FilePath $py `
     -ArgumentList '-m','uvicorn','app.main:app','--port','8000','--host','127.0.0.1' `
     -WorkingDirectory $backend -WindowStyle Minimized
-# Attente que l'API réponde
 $ok = $false
 for ($i=0; $i -lt 20; $i++) {
     try { Invoke-RestMethod 'http://127.0.0.1:8000/' -TimeoutSec 3 | Out-Null; $ok = $true; break } catch { Start-Sleep 1 }
 }
-if ($ok) { Write-Host 'Backend prêt' -ForegroundColor Green } else { Write-Host 'Backend NON démarré (voir la fenêtre minimisée)' -ForegroundColor Red }
+if ($ok) { Write-Host 'Backend pret' -ForegroundColor Green } else { Write-Host 'Backend NON demarre (voir la fenetre minimisee)' -ForegroundColor Red }
 
 # ---------------------------------------------------------------- 3. Frontend
 Titre 'Frontend Vite (vitrine + dashboard)'
 Start-Process -FilePath 'cmd.exe' -ArgumentList '/c','npm run dev' `
     -WorkingDirectory $frontend -WindowStyle Minimized
-Write-Host 'Vitrine  : http://localhost:5173' -ForegroundColor Green
-Write-Host 'Dashboard: http://localhost:5173/admin' -ForegroundColor Green
+Write-Host 'Vitrine   : http://localhost:5173' -ForegroundColor Green
+Write-Host 'Dashboard : http://localhost:5173/admin' -ForegroundColor Green
 
 # ---------------------------------------------------------------- 4. Tunnel (Telegram)
 Titre 'Tunnel cloudflared -> backend (pour le bot Telegram)'
@@ -82,29 +84,29 @@ if ($url) {
     $token = if ($line) { $line.Matches.Groups[1].Value.Trim() } else { '' }
     if ($token) {
         $hook = "$url/webhook/telegram"
-        Start-Sleep 5   # laisse le tunnel établir ses connexions avant que Telegram le valide
+        Start-Sleep 5   # laisse le tunnel etablir ses connexions avant que Telegram le valide
         $done = $false
         for ($t=1; $t -le 3 -and -not $done; $t++) {
             try {
                 $r = Invoke-RestMethod "https://api.telegram.org/bot$token/setWebhook?url=$hook&drop_pending_updates=true" -TimeoutSec 30
                 if ($r.ok) { Write-Host "Webhook OK -> $hook" -ForegroundColor Green; $done = $true }
-                else { Write-Host "setWebhook a échoué: $($r.description)" -ForegroundColor Red; break }
-            } catch { Write-Host "Tentative $t/3 échouée (réseau lent)…" -ForegroundColor Yellow; Start-Sleep 4 }
+                else { Write-Host "setWebhook a echoue: $($r.description)" -ForegroundColor Red; break }
+            } catch { Write-Host "Tentative $t/3 echouee (reseau lent)..." -ForegroundColor Yellow; Start-Sleep 4 }
         }
-        if (-not $done) { Write-Host "setWebhook non confirmé — relance le script ou refais-le à la main." -ForegroundColor Red }
+        if (-not $done) { Write-Host 'setWebhook non confirme - relance le script ou refais-le a la main.' -ForegroundColor Red }
     } else { Write-Host 'TELEGRAM_BOT_TOKEN absent de backend\.env' -ForegroundColor Red }
 } else {
-    Write-Host 'Tunnel non obtenu — le bot Telegram ne fonctionnera pas.' -ForegroundColor Yellow
-    Write-Host 'La démo LOCALE (vitrine + dashboard + panneau Test) marche quand même.' -ForegroundColor Yellow
+    Write-Host 'Tunnel non obtenu - le bot Telegram ne fonctionnera pas.' -ForegroundColor Yellow
+    Write-Host 'La demo LOCALE (vitrine + dashboard + panneau Test) marche quand meme.' -ForegroundColor Yellow
 }
 
-# ---------------------------------------------------------------- Récapitulatif
+# ---------------------------------------------------------------- Recapitulatif
 Write-Host "`n============================================================" -ForegroundColor Magenta
-Write-Host ' DÉMO PRÊTE' -ForegroundColor Magenta
+Write-Host ' DEMO PRETE' -ForegroundColor Magenta
 Write-Host '------------------------------------------------------------'
 Write-Host ' Vitrine        : http://localhost:5173'
 Write-Host ' Dashboard      : http://localhost:5173/admin   (admin@smartshop.ma / admin123)'
-Write-Host ' Chatbot local  : Dashboard > onglet Conversations > panneau "Test"  (sans tunnel ; Internet requis pour l''IA)'
+Write-Host ' Chatbot local  : Dashboard > Conversations > panneau Test  (sans tunnel ; Internet requis pour IA)'
 Write-Host ' Bot Telegram   : @cyber_reponse_bot            (bonus, via le tunnel)'
 Write-Host '============================================================' -ForegroundColor Magenta
-Write-Host 'Pour tout arrêter : .\arreter_demo.ps1'
+Write-Host 'Pour tout arreter : .\arreter_demo.ps1'
