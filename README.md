@@ -124,9 +124,13 @@ Pipeline défini dans `.github/workflows/ci-cd.yml`, déclenché sur *push* `mai
 
 | Stage | Job | Contenu |
 |---|---|---|
-| **Build + Test** | `backend` | Python 3.12, cache pip, vérification d'import de l'app, **pytest** (55 tests, SQLite en mémoire — aucun secret requis), rapport JUnit en artefact |
-| **Build** | `frontend` | Node 20, cache npm, `npm ci` + `npm run build`, bundle `dist/` en artefact |
-| **Deploy** | `publier-images` | Build **multi-images** (backend + frontend) et push vers **ghcr.io** avec cache de build GitHub. Ignoré sur les pull requests |
+| **Sécurité** | `gitleaks` | Scan de secrets sur tout l'historique git ([gitleaks](https://github.com/gitleaks/gitleaks)) — **bloque le déploiement** si un secret est détecté |
+| **Build** | `backend-build` | Python 3.12, cache pip, vérification d'import de l'app |
+| **Test** | `backend-tests` | **pytest** (55 tests, SQLite en mémoire), couverture (`pytest-cov`), rapport JUnit + Check Run + résumé de couverture, artefact `rapports-backend` |
+| **Build** | `frontend-build` | Node 20, cache npm, `npm ci` + `npm run build`, bundle `dist/` en artefact |
+| **Test** | `frontend-tests` | **vitest** + couverture (`@vitest/coverage-v8`), rapport JUnit + Check Run + résumé de couverture, artefact `rapports-frontend` |
+| **Qualité** | `sonarcloud-backend` / `sonarcloud-frontend` | Analyse [SonarCloud](https://sonarcloud.io) (2 projets séparés), réutilise les rapports de couverture ci-dessus. Informatif — ne bloque pas le déploiement |
+| **Deploy** | `publier-images` | Build **multi-images** (backend + frontend) et push vers **ghcr.io** avec cache de build GitHub. Ignoré sur les pull requests, requiert `gitleaks` + les tests au vert |
 
 Images publiées (tags : `latest`, `main`, `sha-xxxxxxx`, `vX.Y.Z`) :
 
@@ -135,8 +139,19 @@ ghcr.io/safaasouib-wq/smartshop/backend
 ghcr.io/safaasouib-wq/smartshop/frontend
 ```
 
-Aucun secret à configurer : le job utilise le `GITHUB_TOKEN` intégré (`packages: write`).
+`gitleaks` et le déploiement ghcr.io ne demandent **aucun secret** : `GITHUB_TOKEN` intégré suffit.
 Après le premier run, rendre les packages publics si besoin : *repo → Packages → Package settings → Change visibility*.
+
+### Configurer SonarCloud (une fois)
+
+1. Créer un compte sur [sonarcloud.io](https://sonarcloud.io) → connexion avec GitHub.
+2. **+ → Analyze new project** → importer l'organisation puis le repo `Smartshop` (SonarCloud propose de créer 2 projets si on relance l'import, sinon dupliquer manuellement pour avoir `Smartshop-backend` et `Smartshop-frontend`).
+3. Noter la **clé d'organisation** (Administration → Organization) et la remplacer dans `backend/sonar-project.properties` et `frontend/sonar-project.properties` (`sonar.organization=`).
+4. **My Account → Security → Generate Token** → copier le token.
+5. Repo GitHub → **Settings → Secrets and variables → Actions → New repository secret** → nom `SONAR_TOKEN`, valeur = le token généré.
+6. Dans chaque projet SonarCloud, désactiver *Automatic Analysis* (Administration → Analysis Method) pour laisser la main au pipeline GitHub Actions.
+
+Une fois configuré, chaque run affiche le Quality Gate (bugs, vulnérabilités, code smells, duplication, couverture) dans l'onglet **Checks** de la PR et sur le dashboard SonarCloud.
 
 ### Déploiement depuis les images publiées
 

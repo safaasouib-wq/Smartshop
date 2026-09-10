@@ -1,0 +1,12 @@
+# Configuration gitleaks — étend le jeu de règles par défaut (détection de secrets).
+# Doc : https://github.com/gitleaks/gitleaks#configuration
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Faux positifs connus du projet"
+paths = [
+  '''\.env\.example$''',      # placeholders vides, pas de vrais secrets
+  '''docker-compose\.prod\.yml$''',  # mots de passe par défaut documentés, à changer en prod
+]

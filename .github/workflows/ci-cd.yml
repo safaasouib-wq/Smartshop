@@ -21,6 +21,24 @@ env:
   NODE_VERSION: '20'
 
 jobs:
+  # ── SÉCURITÉ : scan de secrets (bloque le déploiement en cas de fuite) ────
+  gitleaks:
+    name: Sécurité — gitleaks (scan de secrets)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # publie les résultats dans l'onglet Security
+      pull-requests: write     # commente la PR en cas de secret détecté
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # historique complet requis pour scanner tous les commits
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # ── STAGE 1 : BUILD + TEST backend ────────────────────────────────────────
   backend-build:
     name: Backend — build
@@ -198,11 +216,62 @@ jobs:
           if-no-files-found: ignore
           retention-days: 30
 
+  # ── QUALITÉ : analyse SonarCloud (2 projets séparés backend/frontend) ─────
+  sonarcloud-backend:
+    name: Qualité — SonarCloud (Backend)
+    needs: backend-tests
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SONAR_TOKEN != '' }}   # ignoré tant que le secret n'est pas configuré (voir README)
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # historique complet requis par l'analyse Sonar
+
+      - name: Récupérer le rapport de couverture (job backend-tests)
+        uses: actions/download-artifact@v4
+        with:
+          name: rapports-backend
+          path: backend/reports
+
+      - name: Analyse SonarCloud
+        uses: sonarsource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  sonarcloud-frontend:
+    name: Qualité — SonarCloud (Frontend)
+    needs: frontend-tests
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SONAR_TOKEN != '' }}   # ignoré tant que le secret n'est pas configuré (voir README)
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # historique complet requis par l'analyse Sonar
+
+      - name: Récupérer le rapport de couverture (job frontend-tests)
+        uses: actions/download-artifact@v4
+        with:
+          name: rapports-frontend
+          path: frontend/reports
+
+      - name: Analyse SonarCloud
+        uses: sonarsource/sonarqube-scan-action@v4
+        with:
+          projectBaseDir: frontend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   # ── STAGE 2 : DEPLOY — images Docker vers ghcr.io ─────────────────────────
   publier-images:
     name: Deploy — images Docker (ghcr.io)
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests]
+    needs: [gitleaks, backend-tests, frontend-tests]
     if: github.event_name != 'pull_request'
     permissions:
       contents: read

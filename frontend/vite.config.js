@@ -11,7 +11,7 @@ export default defineConfig({
     environment: 'jsdom',
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'html', 'cobertura'],
+      reporter: ['text', 'html', 'cobertura', 'lcov'],
       reportsDirectory: './reports/coverage',
       exclude: ['**/*.config.js', 'src/main.jsx'],
     },
