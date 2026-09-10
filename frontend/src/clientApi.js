@@ -13,7 +13,10 @@ export function deconnecter() {
   localStorage.removeItem(TOKEN_KEY)
   localStorage.removeItem(COMPTE_KEY)
 }
-export const authHeader = () => (getToken() ? { Authorization: `Bearer ${getToken()}` } : {})
+export const authHeader = () => ({
+  'ngrok-skip-browser-warning': 'true',
+  ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+})
 
 // Panier persistant
 export const lirePanier = () => { try { return JSON.parse(localStorage.getItem(PANIER_KEY)) || [] } catch { return [] } }

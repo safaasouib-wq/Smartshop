@@ -48,7 +48,7 @@ export default function Suivi() {
   useEffect(() => {
     if (!id) { setErreur('Aucune commande spécifiée'); return }
     let stop = false
-    const charger = () => fetch(`/api/commande/${id}/suivi`)
+    const charger = () => fetch(`/api/commande/${id}/suivi`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(r => { if (!r.ok) throw new Error('Commande introuvable'); return r.json() })
       .then(d => { if (!stop) setData(d) })
       .catch(e => { if (!stop) setErreur(e.message) })

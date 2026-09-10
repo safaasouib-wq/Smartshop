@@ -6,7 +6,7 @@ export function setToken(t) { sessionStorage.setItem('token', t) }
 export function clearToken() { sessionStorage.removeItem('token') }
 
 async function request(path, options = {}) {
-  const headers = { ...(options.headers || {}) }
+  const headers = { 'ngrok-skip-browser-warning': 'true', ...(options.headers || {}) }
   if (getToken()) headers['Authorization'] = `Bearer ${getToken()}`
   if (options.body && !(options.body instanceof URLSearchParams))
     headers['Content-Type'] = 'application/json'
@@ -80,7 +80,12 @@ export const api = {
 
 // Téléchargement d'un PDF protégé (ajoute le token puis déclenche le download navigateur).
 export async function telechargerPdf(path, filename) {
-  const resp = await fetch(`${BASE}${path}`, { headers: getToken() ? { Authorization: `Bearer ${getToken()}` } : {} })
+  const resp = await fetch(`${BASE}${path}`, {
+    headers: {
+      'ngrok-skip-browser-warning': 'true',
+      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+    },
+  })
   if (!resp.ok) throw new Error('Téléchargement impossible')
   const url = URL.createObjectURL(await resp.blob())
   const a = document.createElement('a')

@@ -684,7 +684,7 @@ export default function Vitrine() {
   const [lang, setLang] = useState(() => { const s = localStorage.getItem('lang'); return CODES.includes(s) ? s : 'fr' })
 
   useEffect(() => {
-    fetch('/api/vitrine')
+    fetch('/api/vitrine', { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(r => { if (!r.ok) throw new Error('Chargement impossible'); return r.json() })
       .then(setData).catch(e => setErreur(e.message))
   }, [])
