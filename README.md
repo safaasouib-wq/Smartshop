@@ -120,7 +120,7 @@ Envoyer à ton bot sur Telegram :
 
 ## CI/CD (GitHub Actions)
 
-Pipeline défini dans `.github/workflows/ci-cd.yml`, déclenché sur *push* `main`, tags `v*`, *pull request* et manuellement.
+Pipeline défini dans `.github/workflows/ci-cd.yml`, déclenché automatiquement sur *push* `main`, tags `v*` et *pull request* pour le build/test/sécurité/qualité — le **déploiement est manuel** (voir plus bas).
 
 | Stage | Job | Contenu |
 |---|---|---|
@@ -129,8 +129,13 @@ Pipeline défini dans `.github/workflows/ci-cd.yml`, déclenché sur *push* `mai
 | **Test** | `backend-tests` | **pytest** (55 tests, SQLite en mémoire), couverture (`pytest-cov`), rapport JUnit + Check Run + résumé de couverture, artefact `rapports-backend` |
 | **Build** | `frontend-build` | Node 20, cache npm, `npm ci` + `npm run build`, bundle `dist/` en artefact |
 | **Test** | `frontend-tests` | **vitest** + couverture (`@vitest/coverage-v8`), rapport JUnit + Check Run + résumé de couverture, artefact `rapports-frontend` |
-| **Qualité** | `sonarcloud-backend` / `sonarcloud-frontend` | Analyse [SonarCloud](https://sonarcloud.io) (2 projets séparés), réutilise les rapports de couverture ci-dessus. Informatif — ne bloque pas le déploiement |
-| **Deploy** | `publier-images` | Build **multi-images** (backend + frontend) et push vers **ghcr.io** avec cache de build GitHub. Ignoré sur les pull requests, requiert `gitleaks` + les tests au vert |
+| **Qualité** | `sonarcloud-backend` / `sonarcloud-frontend` | Analyse [SonarCloud](https://sonarcloud.io) (2 projets séparés), réutilise les rapports de couverture ci-dessus. Informatif — ne bloque pas le déploiement. Ignoré tant que `SONAR_TOKEN` n'est pas configuré |
+| **Deploy** (manuel) | `publier-images` | Build **multi-images** (backend + frontend) et push vers **ghcr.io**. Ne se déclenche **que** via *Actions → CI/CD → Run workflow* (case « deployer » cochée par défaut), jamais automatiquement sur un push/PR. Requiert `gitleaks` + les tests au vert |
+
+### Déclencher un déploiement
+
+Repo GitHub → onglet **Actions** → workflow **CI/CD** → bouton **Run workflow** → choisir la branche/tag → laisser la case « Publier les images... » cochée → **Run workflow**.
+Tout le pipeline (sécurité, build, tests, qualité) s'exécute normalement, puis le job `publier-images` publie les images à la fin.
 
 Images publiées (tags : `latest`, `main`, `sha-xxxxxxx`, `vX.Y.Z`) :
 
