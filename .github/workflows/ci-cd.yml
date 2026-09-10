@@ -13,6 +13,9 @@ concurrency:
   group: ci-cd-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   PYTHON_VERSION: '3.12'
   NODE_VERSION: '20'
@@ -48,6 +51,10 @@ jobs:
     name: Backend — tests
     needs: backend-build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write        # publie le rapport de tests en Check Run
+      pull-requests: write # commente le résumé sur la PR
     defaults:
       run:
         working-directory: backend
@@ -65,16 +72,44 @@ jobs:
       - name: Installer les dépendances
         run: pip install -r requirements-dev.txt
 
-      - name: Tests pytest
-        run: pytest -q --junitxml=rapport-tests.xml
+      - name: Tests pytest (JUnit + couverture)
+        run: |
+          pytest -q \
+            --junitxml=reports/junit.xml \
+            --cov=app --cov-report=xml:reports/coverage.xml \
+            --cov-report=html:reports/htmlcov --cov-report=term
 
-      - name: Publier le rapport de tests
+      - name: Rapport de tests → résumé + Check Run
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: backend/reports/junit.xml
+          check_name: 'Résultats — Backend'
+          detailed_summary: true
+          include_passed: true
+
+      - name: Rapport de couverture → résumé
+        if: always()
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: backend/reports/coverage.xml
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Ajouter la couverture au résumé du job
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: cat code-coverage-results.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Publier les rapports (JUnit + couverture)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rapport-tests-backend
-          path: backend/rapport-tests.xml
+          name: rapports-backend
+          path: backend/reports/
           if-no-files-found: ignore
+          retention-days: 30
 
   # ── STAGE 1 bis : BUILD frontend ──────────────────────────────────────────
   frontend-build:
@@ -109,6 +144,10 @@ jobs:
     name: Frontend — tests
     needs: frontend-build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write        # publie le rapport de tests en Check Run
+      pull-requests: write # commente le résumé sur la PR
     defaults:
       run:
         working-directory: frontend
@@ -124,8 +163,40 @@ jobs:
       - name: Installer les dépendances
         run: npm ci
 
-      - name: Tests
-        run: npm test
+      - name: Tests vitest (JUnit + couverture)
+        run: npm run test:ci
+
+      - name: Rapport de tests → résumé + Check Run
+        if: always()
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: frontend/reports/junit.xml
+          check_name: 'Résultats — Frontend'
+          detailed_summary: true
+          include_passed: true
+
+      - name: Rapport de couverture → résumé
+        if: always()
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: frontend/reports/coverage/cobertura-coverage.xml
+          badge: true
+          format: markdown
+          output: both
+
+      - name: Ajouter la couverture au résumé du job
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: cat code-coverage-results.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Publier les rapports (JUnit + couverture)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-frontend
+          path: frontend/reports/
+          if-no-files-found: ignore
+          retention-days: 30
 
   # ── STAGE 2 : DEPLOY — images Docker vers ghcr.io ─────────────────────────
   publier-images:
