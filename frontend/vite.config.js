@@ -6,5 +6,14 @@ export default defineConfig({
   server: {
     proxy: { '/api': 'http://localhost:8000' },  // évite les soucis CORS en dev
     allowedHosts: ['.trycloudflare.com']         // autorise l'accès via tunnel cloudflared (test mobile/à distance)
-  }
+  },
+  test: {
+    environment: 'jsdom',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'cobertura', 'lcov'],
+      reportsDirectory: './reports/coverage',
+      exclude: ['**/*.config.js', 'src/main.jsx'],
+    },
+  },
 })

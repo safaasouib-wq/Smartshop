@@ -18,6 +18,11 @@ venv/
 *.sqlite3
 backend/smartshop.db
 
+# === Rapports de tests / couverture (générés en local ou en CI) ===
+backend/reports/
+backend/.coverage
+frontend/reports/
+
 # === Node / frontend ===
 node_modules/
 frontend/dist/
