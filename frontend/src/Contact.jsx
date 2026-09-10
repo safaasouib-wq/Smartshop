@@ -2,7 +2,7 @@
 // ⚠️ Un seul endroit à modifier pour le numéro WhatsApp : la constante WHATSAPP_PHONE ci-dessous.
 import React from 'react'
 
-export const TELEGRAM_BOT = 'https://t.me/cyber_reponse_bot'
+export const TELEGRAM_BOT = 'https://t.me/Smartshop_tas_bot'
 // ⬇️ Remplace par ton numéro WhatsApp Business (format international, chiffres uniquement, sans +)
 export const WHATSAPP_PHONE = '212600000000'
 export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent('Bonjour ! Je viens de votre boutique en ligne 🙂')}`
