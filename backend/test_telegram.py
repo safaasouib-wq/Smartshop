@@ -31,8 +31,8 @@ TIMEOUT_REPONSE = 30              # secondes d'attente max pour une réponse de 
 
 # Scénario de démo : question de prix → commande → escalade
 SCENARIO = [
-    "Salam, chhal taman dyal chebakia?",
-    "Bghit ncommandi 2 boîtes cornes de gazelle",
+    "Salam, chhal taman dyal sak dyal jild?",
+    "Bghit ncommandi 2 sakat dyal jild",
     "Wakha, chokran",
     "Bghit nhder m3a chi wa7ed",
 ]

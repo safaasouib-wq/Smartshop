@@ -115,10 +115,12 @@ def resume_jour(db: Session = Depends(get_db), _=Depends(exiger("stats"))):
     try:
         from app.ai.engine import client_llm, nettoyer_markdown
         from app.config import settings
-        sys = ("Tu es l'assistant du commerçant d'une pâtisserie. À partir des chiffres des "
+        sys = ("Tu es l'assistant du commerçant d'une boutique de prêt-à-porter et "
+               "d'accessoires de luxe (vêtements, sacs, montres). À partir des chiffres des "
                "dernières 24 h, rédige un résumé COURT (2 à 3 phrases), chaleureux et actionnable, "
                "en français. Mets en avant ce qui compte (ventes, produit vedette, ce qu'il reste "
-               "à faire). Texte simple, sans markdown, sans tableau.")
+               "à faire). Exprime TOUS les montants en dirhams, avec le suffixe « DH » "
+               "(jamais en euros ni le symbole €). Texte simple, sans markdown, sans tableau.")
         usr = "Données des dernières 24 h : " + json.dumps(faits, ensure_ascii=False)
         r = client_llm.chat.completions.create(
             model=settings.LLM_MODEL,
@@ -233,11 +235,11 @@ def changer_statut(commande_id: int, statut: models.StatutCommande,
     db.commit()
     # Notification automatique du client au changement de statut, via son canal d'origine.
     from app import livraison
-    prete = ("🍰 Votre commande n°{id} est prête ! " +
+    prete = ("✨ Votre commande n°{id} est prête ! " +
              ("Le livreur va bientôt partir. 🛵" if commande.mode == "livraison"
               else "Vous pouvez venir la récupérer — pas de file d'attente 😉."))
     messages = {
-        models.StatutCommande.EN_PREPARATION: "👩‍🍳 Votre commande n°{id} est en cours de préparation.",
+        models.StatutCommande.EN_PREPARATION: "📦 Votre commande n°{id} est en cours de préparation.",
         models.StatutCommande.PRETE: prete,
         models.StatutCommande.RECUPEREE: ("✅ Merci ! Votre commande n°{id} est "
                                           + ("livrée" if commande.mode == "livraison" else "récupérée") + ". À bientôt ! 🙏"),

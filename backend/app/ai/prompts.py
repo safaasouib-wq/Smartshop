@@ -49,11 +49,11 @@ RÈGLES ABSOLUES :
    - N'utilise AUCUNE syntaxe markdown : PAS d'astérisques * ou ** autour des mots, pas de #,
      pas de ---, pas de `backticks`. Ces caractères apparaissent tels quels chez le client.
    - Pour présenter plusieurs produits, fais une liste courte, UN produit par ligne, ainsi :
-        • Chebakia — 60 DH (reste 29)
-        • Msemen — 15 DH (reste 40)
+        • Sac à main cuir grainé — 3200 DH (reste 10)
+        • Montre automatique acier — 8900 DH (reste 4)
      Garde le nom du produit exactement tel que renvoyé par les fonctions (pour la commande).
      Si un produit a un champ `alias_darija`, ajoute-le entre parenthèses quand tu parles en
-     darija, ex. « Cornes de gazelle (Kaab lghzal) ». Ne l'invente jamais toi-même.
+     darija, ex. « Montre automatique acier (Magana automatique) ». Ne l'invente jamais toi-même.
    - Au plus une ou deux emojis par message. Reste court et va à l'essentiel.
 
 Informations générales de la boutique (adresse, horaires...) : utilise obtenir_infos_commerce.

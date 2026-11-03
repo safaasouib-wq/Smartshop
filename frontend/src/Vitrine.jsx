@@ -1,4 +1,4 @@
-// Vitrine web publique — design éditorial pâtisserie, recherche/filtres, fiche produit,
+// Vitrine web publique — design éditorial boutique de luxe, recherche/filtres, fiche produit,
 // animations, panier, comptes, commande en ligne, bilingue FR/Darija.
 import React, { useEffect, useRef, useState } from 'react'
 import { authHeader, getCompte, lirePanier, ecrirePanier } from './clientApi.js'
@@ -6,9 +6,9 @@ import { AuthModal, ComptePanel } from './Compte.jsx'
 import { ContactFlottant, TELEGRAM_BOT } from './Contact.jsx'
 import { CODES, LANGUES, LangContext, dirOf, makeT, tc, useT } from './i18n.js'
 
-const OR = '#8a5a34'      // brun caramel — accents, prix, boutons
-const BRUN = '#4a3527'    // brun foncé — barre supérieure, pieds
-const ROSE = '#c98a76'    // terracotta doux — bandeau promo
+const OR = '#b4914f'      // or champagne — accents, prix, boutons
+const NOIR = '#141210'    // noir profond — barre supérieure, pieds
+const ENCRE = '#262220'   // encre chaude — bandeau horlogerie
 const L = window.L
 const CASA = [33.5731, -7.6298] // centre Casablanca (carte de checkout)
 const SEUIL_STOCK = 5           // en dessous : badge « plus que X »
@@ -73,11 +73,11 @@ function CarteProduit({ p, onAdd, onOpen }) {
   return (
     <div className="group text-center">
       <button onClick={() => onOpen(p)} className="block w-full text-left relative bg-white shadow-sm overflow-hidden rounded-sm">
-        <div className="aspect-square overflow-hidden bg-[#efe3d3] relative">
+        <div className="aspect-square overflow-hidden bg-[#eceae6] relative">
           {p.image_url
             ? <img src={p.image_url} alt={p.nom} loading="lazy"
                    className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${epuise ? 'grayscale opacity-60' : ''}`} />
-            : <div className="w-full h-full flex items-center justify-center text-5xl">🧁</div>}
+            : <div className="w-full h-full flex items-center justify-center text-5xl">👜</div>}
           <BadgeStock p={p} />
           {p.best_seller && (
             <span className="absolute top-2 right-2 text-white text-[10px] font-semibold tracking-wide px-2 py-1 rounded-full shadow-sm" style={{ background: OR }}>🔥 {t('best_seller')}</span>
@@ -116,10 +116,10 @@ function FicheProduit({ p, onAdd, onClose }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="bg-white w-full sm:max-w-3xl sm:rounded-2xl max-h-[92vh] overflow-y-auto grid md:grid-cols-2 animate-[fadeIn_.25s_ease]" onClick={e => e.stopPropagation()}>
-        <div className="relative aspect-square md:aspect-auto bg-[#efe3d3]">
+        <div className="relative aspect-square md:aspect-auto bg-[#eceae6]">
           {p.image_url
             ? <img src={p.image_url} alt={p.nom} className="w-full h-full object-cover" />
-            : <div className="w-full h-full flex items-center justify-center text-7xl">🧁</div>}
+            : <div className="w-full h-full flex items-center justify-center text-7xl">👜</div>}
           <BadgeStock p={p} />
           {p.best_seller && (
             <span className="absolute top-2 right-2 text-white text-[10px] font-semibold tracking-wide px-2 py-1 rounded-full shadow-sm" style={{ background: OR }}>🔥 {t('best_seller')}</span>
@@ -162,31 +162,31 @@ function CarteVisuel({ image, titre, texte, onClick }) {
   return (
     <button onClick={onClick} className="group text-center block w-full cursor-pointer">
       <div className="overflow-hidden shadow-sm rounded-sm">
-        <div className="h-56 bg-[#efe3d3] overflow-hidden">
+        <div className="h-56 bg-[#eceae6] overflow-hidden">
           {image
             ? <img src={image} alt={titre} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            : <div className="w-full h-full flex items-center justify-center text-5xl">🍰</div>}
+            : <div className="w-full h-full flex items-center justify-center text-5xl">👜</div>}
         </div>
       </div>
-      <h3 className="mt-5 text-base font-semibold tracking-[0.18em] uppercase text-stone-800 group-hover:text-[#8a5a34] transition-colors">{titre}</h3>
+      <h3 className="mt-5 text-base font-semibold tracking-[0.18em] uppercase text-stone-800 group-hover:text-[#b4914f] transition-colors">{titre}</h3>
       <p className="font-cormorant italic text-stone-500 mt-1 px-4">{texte}</p>
     </button>
   )
 }
 
-function Banniere({ image, surtitre, titre, texte, cta, droite, rose }) {
+function Banniere({ image, surtitre, titre, texte, cta, droite, sombre }) {
   return (
     <div className="grid md:grid-cols-2 overflow-hidden shadow-sm bg-white rounded-sm">
-      <div className={`h-64 md:h-auto md:min-h-[320px] bg-[#efe3d3] overflow-hidden ${droite ? 'md:order-2' : ''}`}>
+      <div className={`h-64 md:h-auto md:min-h-[320px] bg-[#eceae6] overflow-hidden ${droite ? 'md:order-2' : ''}`}>
         {image && <img src={image} alt={titre} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />}
       </div>
-      <div className="flex flex-col items-center justify-center text-center p-10" style={rose ? { background: ROSE } : {}}>
-        {surtitre && <p className="font-script text-3xl" style={{ color: rose ? '#fff' : OR }}>{surtitre}</p>}
-        <h3 className={`font-serif-display text-3xl mt-1 ${rose ? 'text-white' : 'text-stone-800'}`}>{titre}</h3>
-        <Ornement color={rose ? '#ffffff' : OR} />
-        <p className={`font-cormorant italic max-w-sm text-lg ${rose ? 'text-white/90' : 'text-stone-500'}`}>{texte}</p>
-        <Tg className={`mt-6 text-xs tracking-[0.2em] uppercase font-semibold px-8 py-3 hover:brightness-110 ${rose ? 'bg-white' : 'text-white'}`}
-            style={rose ? { color: BRUN } : { background: OR }}>{cta}</Tg>
+      <div className="flex flex-col items-center justify-center text-center p-10" style={sombre ? { background: ENCRE } : {}}>
+        {surtitre && <p className="font-script text-3xl" style={{ color: sombre ? '#fff' : OR }}>{surtitre}</p>}
+        <h3 className={`font-serif-display text-3xl mt-1 ${sombre ? 'text-white' : 'text-stone-800'}`}>{titre}</h3>
+        <Ornement color={sombre ? '#ffffff' : OR} />
+        <p className={`font-cormorant italic max-w-sm text-lg ${sombre ? 'text-white/90' : 'text-stone-500'}`}>{texte}</p>
+        <Tg className={`mt-6 text-xs tracking-[0.2em] uppercase font-semibold px-8 py-3 hover:brightness-110 ${sombre ? 'bg-white' : 'text-white'}`}
+            style={sombre ? { color: NOIR } : { background: OR }}>{cta}</Tg>
       </div>
     </div>
   )
@@ -197,7 +197,7 @@ function BandeConfiance() {
   const { t } = useT()
   const items = [
     ['💳', t('trust_paiement_t'), t('trust_paiement_s')],
-    ['👩‍🍳', t('trust_maison_t'), t('trust_maison_s')],
+    ['💎', t('trust_maison_t'), t('trust_maison_s')],
     ['🛵', t('trust_livr_t'), t('trust_livr_s')],
     ['💬', t('trust_support_t'), t('trust_support_s')],
   ]
@@ -232,7 +232,7 @@ function BandeAvis() {
               <div className="text-base tracking-widest" style={{ color: OR }}>★★★★★</div>
               <p className="mt-3 font-cormorant italic text-lg text-stone-600 leading-relaxed flex-1">« {txt} »</p>
               <div className="mt-5 flex items-center gap-3">
-                <span className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shrink-0" style={{ background: ROSE }}>{nom[0]}</span>
+                <span className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shrink-0" style={{ background: ENCRE }}>{nom[0]}</span>
                 <span className="text-sm font-semibold tracking-wide text-stone-700">{nom}</span>
               </div>
             </div>
@@ -257,7 +257,7 @@ function BarreFiltres({ q, setQ, cat, setCat, sort, setSort, categories }) {
         <div className="relative flex-1">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">🔍</span>
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('rechercher_ph')}
-                 className="w-full pl-9 pr-3 py-2.5 rounded-full border border-stone-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#8a5a34]/40" />
+                 className="w-full pl-9 pr-3 py-2.5 rounded-full border border-stone-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#b4914f]/40" />
         </div>
         <select value={sort} onChange={e => setSort(e.target.value)}
                 className="py-2.5 px-3 rounded-full border border-stone-200 bg-white text-sm text-stone-600 focus:outline-none">
@@ -370,13 +370,13 @@ function Checkout({ panier, setPanier, onClose, compte }) {
 
               <div className="space-y-3">
                 <input value={nom} onChange={e => setNom(e.target.value)} placeholder={t('ph_nom')}
-                       className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#8a5a34]/40" />
+                       className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b4914f]/40" />
                 <input value={tel} onChange={e => setTel(e.target.value)} placeholder={t('ph_tel')}
-                       className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#8a5a34]/40" />
+                       className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b4914f]/40" />
                 {mode === 'livraison' && (
                   <>
                     <input value={adresse} onChange={e => setAdresse(e.target.value)} placeholder={t('ph_adresse')}
-                           className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#8a5a34]/40" />
+                           className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b4914f]/40" />
                     <div>
                       <p className="text-xs text-stone-400 mb-1">{t('carte_hint')}</p>
                       <MiniCarte onPick={(lat, lng) => setPin([lat, lng])} />
@@ -475,10 +475,10 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
     if (!parCat[c]) { parCat[c] = []; categories.push(c) }
     parCat[c].push(p)
   }
-  const img = (pred) => (produits.find(pred) || {}).image_url
-  const heroImg = img(p => /macaron/i.test(p.nom)) || (produits[0] || {}).image_url
-  const offreImg = img(p => /chebakia/i.test(p.nom)) || (produits[1] || {}).image_url
-  const anivImg = img(p => /gâteau|gateau|anniversaire/i.test(p.nom))
+  // Décors de la vitrine (SVG servis depuis /public, sans dépendance réseau).
+  const heroImg = '/hero.svg'
+  const offreImg = '/banniere-sacs.svg'
+  const anivImg = '/banniere-montres.svg'
 
   // Filtrage / tri
   const filtreActif = q.trim() !== '' || cat !== 'all' || sort !== 'reco'
@@ -495,11 +495,11 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
   }
 
   return (
-    <div dir={dirOf(lang)} className="min-h-screen bg-[#f7efe3] text-stone-800">
+    <div dir={dirOf(lang)} className="min-h-screen bg-[#f6f3ef] text-stone-800">
       <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
 
       {/* BARRE SUPÉRIEURE */}
-      <div className="text-[11px] tracking-wide" style={{ background: BRUN, color: '#e9dccb' }}>
+      <div className="text-[11px] tracking-wide" style={{ background: NOIR, color: '#e9dccb' }}>
         <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
           <span className="truncate">🕐 {commerce.horaires || commerce.description}</span>
           {commerce.telephone && <span className="hidden sm:flex items-center gap-1.5 shrink-0">☎ {commerce.telephone}</span>}
@@ -507,13 +507,13 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
       </div>
 
       {/* NAV */}
-      <nav className="border-b border-[#e6d6c0] bg-[#f7efe3]/90 backdrop-blur sticky top-0 z-30">
+      <nav className="border-b border-[#e3ded6] bg-[#f6f3ef]/90 backdrop-blur sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-3">
           <div className="flex-1 flex items-center gap-4 sm:gap-6 text-[11px] tracking-[0.2em] uppercase text-stone-600">
             <a href="#carte" className="hover:text-stone-900">{t('nav_carte')}</a>
             <a href="#offre" className="hidden sm:inline hover:text-stone-900">{t('nav_offres')}</a>
           </div>
-          <a href="/" className="text-2xl shrink-0">🕊️</a>
+          <a href="/" className="text-2xl shrink-0" style={{ color: OR }}>✦</a>
           <div className="flex-1 flex items-center justify-end gap-2 sm:gap-3">
             <SelecteurLangue />
             <button onClick={() => compte ? setShowCompte(true) : setShowAuth(true)}
@@ -532,8 +532,8 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
         {heroImg && <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover scale-105" />}
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/40" />
         <div className="relative text-center text-white px-4">
-          <p className="font-script text-6xl md:text-8xl drop-shadow-lg">{commerce.nom}</p>
-          <p className="mt-3 tracking-[0.3em] uppercase text-xs md:text-sm">{commerce.description || 'Pâtisserie fine'}</p>
+          <p className="font-serif-display text-5xl md:text-7xl tracking-[0.18em] uppercase drop-shadow-lg">{commerce.nom}</p>
+          <p className="mt-4 tracking-[0.3em] uppercase text-xs md:text-sm text-white/85">{commerce.description || 'Maison de luxe'}</p>
           <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
             <a href="#carte" className="border border-white/80 rounded-full px-8 py-3 text-xs tracking-[0.25em] uppercase hover:bg-white hover:text-stone-800 transition-colors">{t('decouvrir')}</a>
             <button onClick={() => setCheckout(true)} className="rounded-full px-8 py-3 text-xs tracking-[0.25em] uppercase text-white hover:brightness-110 transition" style={{ background: OR }}>{t('commander')}</button>
@@ -604,7 +604,7 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
       {/* BANNIERE ANNIVERSAIRE */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <Reveal>
-          <Banniere image={anivImg} droite rose surtitre={t('sec_aniv_sur')} titre={t('sec_aniv_titre')}
+          <Banniere image={anivImg} droite sombre surtitre={t('sec_aniv_sur')} titre={t('sec_aniv_titre')}
             texte={t('sec_aniv_txt')} cta={t('offre_cta')} />
         </Reveal>
       </section>
@@ -612,7 +612,7 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
       {/* FOOTER */}
       <footer className="bg-white border-t border-stone-200 py-14">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="text-3xl">🕊️</div>
+          <div className="text-3xl" style={{ color: OR }}>✦</div>
           <h4 className="font-serif-display text-2xl text-stone-800 mt-2">{commerce.nom}</h4>
           <Ornement />
           <div className="font-cormorant text-stone-500 text-lg space-y-0.5">
@@ -652,7 +652,7 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
 
       {/* Barre panier collante (mobile) */}
       {nbPanier > 0 && !checkout && (
-        <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-[#e6d6c0] px-4 py-3 flex items-center gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-[#e3ded6] px-4 py-3 flex items-center gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
           <div className="flex-1 leading-tight">
             <div className="text-[11px] uppercase tracking-wider text-stone-500">{t('nb_articles', { n: nbPanier })}</div>
             <div className="font-serif-display text-lg" style={{ color: OR }}>{totalPanier} DH</div>
@@ -697,8 +697,8 @@ export default function Vitrine() {
       {erreur ? (
         <div className="min-h-screen flex items-center justify-center text-stone-500">😔 {erreur}</div>
       ) : !data ? (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#f7efe3]">
-          <div className="w-10 h-10 border-2 border-stone-300 border-t-[#8a5a34] rounded-full animate-spin" />
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#f6f3ef]">
+          <div className="w-10 h-10 border-2 border-stone-300 border-t-[#b4914f] rounded-full animate-spin" />
           <span className="font-cormorant italic text-stone-400 text-xl">Chargement de la boutique…</span>
         </div>
       ) : (

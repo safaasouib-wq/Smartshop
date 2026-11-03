@@ -1,5 +1,10 @@
 """Copie les photos fournies (Téléchargements) vers frontend/public/products/
-et pointe image_url de chaque produit dessus. Usage : python wire_photos.py"""
+et pointe image_url de chaque produit dessus. Usage : python wire_photos.py
+
+Nommez chaque photo avec le mot-clé du produit (ex. « trench.jpg », « sac-main-2.jpg ») :
+le script cherche la première image dont le nom de fichier contient ce mot-clé.
+Par défaut, le catalogue utilise les visuels SVG livrés dans public/products/.
+"""
 import glob
 import os
 import shutil
@@ -13,14 +18,18 @@ os.makedirs(DEST, exist_ok=True)
 
 # (sous-chaîne unique du nom de fichier, nom produit exact, nom fichier destination)
 MAP = [
-    ("would you eat", "Macarons assortis", "macarons.jpg"),
-    ("торт", "Gâteau d'anniversaire", "gateau-anniversaire.jpg"),
-    ("tarte au citron", "Tarte au citron", "tarte-citron.jpg"),
-    ("orientale", "Briouates aux amandes", "briouates.jpg"),
-    ("chebakia", "Chebakia", "chebakia.jpg"),
-    ("msemen", "Msemen", "msemen.jpg"),
-    ("cornes de gazelle", "Cornes de gazelle", "cornes-gazelle.jpg"),
-    ("10 p", "Baghrir", "baghrir.jpg"),
+    ("trench", "Trench en cachemire", "trench-cachemire.jpg"),
+    ("blazer", "Blazer croisé en laine", "blazer-laine.jpg"),
+    ("robe", "Robe de soirée en soie", "robe-soie.jpg"),
+    ("caftan", "Caftan brodé main", "caftan-brode.jpg"),
+    ("sac-main", "Sac à main cuir grainé", "sac-main-cuir.jpg"),
+    ("cabas", "Cabas en cuir camel", "cabas-camel.jpg"),
+    ("pochette", "Pochette de soirée satin", "pochette-satin.jpg"),
+    ("sac-dos", "Sac à dos cuir nappa", "sac-dos-nappa.jpg"),
+    ("montre-acier", "Montre automatique acier", "montre-acier.jpg"),
+    ("chrono", "Chronographe or rose", "chronographe-or.jpg"),
+    ("squelette", "Montre squelette cuir", "montre-squelette.jpg"),
+    ("nacre", "Montre femme nacre", "montre-nacre.jpg"),
 ]
 
 files = glob.glob(os.path.join(DL, "*.jpg"))
@@ -34,7 +43,7 @@ for sub, prod, dest in MAP:
     p = db.query(models.Produit).filter_by(nom=prod).first()
     if p:
         p.image_url = f"/products/{dest}"
-        print(f"OK  {prod:24} <= {os.path.basename(m)[:34]}")
+        print(f"OK  {prod:26} <= {os.path.basename(m)[:34]}")
     else:
         print(f"!! produit absent en base: {prod}")
 db.commit()

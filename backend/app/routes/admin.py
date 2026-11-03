@@ -331,7 +331,7 @@ def recherches_produits(db: Session = Depends(get_db)):
 
 @router.post("/produits/{pid}/toggle")
 def toggle_produit(pid: int, db: Session = Depends(get_db)):
-    """Active/désactive un produit en un clic (ex : chebakia hors Ramadan)."""
+    """Active/désactive un produit en un clic (ex : modèle en rupture ou fin de série)."""
     p = db.get(models.Produit, pid)
     if not p:
         raise HTTPException(404, "Produit introuvable")

@@ -6,14 +6,18 @@ from app import models
 
 # terme de recherche Commons par nom de produit (le plus spécifique possible)
 TERMES = {
-    "Cornes de gazelle": ["Kaab el ghazal", "cornes de gazelle", "gazelle horns pastry"],
-    "Chebakia": ["Chebakia", "Chebbakia"],
-    "Briouates aux amandes": ["Briouat", "Briwat"],
-    "Tarte au citron": ["Lemon tart", "Tarte au citron"],
-    "Gâteau d'anniversaire": ["Birthday cake", "Gateau anniversaire"],
-    "Macarons assortis": ["Macaron", "Macarons"],
-    "Msemen": ["Msemen", "Meloui"],
-    "Baghrir": ["Baghrir", "Beghrir"],
+    "Trench en cachemire": ["Trench coat", "Cashmere coat"],
+    "Blazer croisé en laine": ["Blazer jacket", "Double-breasted blazer"],
+    "Robe de soirée en soie": ["Silk evening dress", "Evening gown"],
+    "Caftan brodé main": ["Moroccan kaftan", "Caftan"],
+    "Sac à main cuir grainé": ["Leather handbag", "Handbag"],
+    "Cabas en cuir camel": ["Leather tote bag", "Tote bag"],
+    "Pochette de soirée satin": ["Evening clutch bag", "Clutch bag"],
+    "Sac à dos cuir nappa": ["Leather backpack", "Backpack leather"],
+    "Montre automatique acier": ["Automatic wristwatch", "Stainless steel watch"],
+    "Chronographe or rose": ["Chronograph watch", "Rose gold watch"],
+    "Montre squelette cuir": ["Skeleton watch", "Skeleton wristwatch"],
+    "Montre femme nacre": ["Women wristwatch", "Mother of pearl watch"],
 }
 
 API = "https://commons.wikimedia.org/w/api.php"

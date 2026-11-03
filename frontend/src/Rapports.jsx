@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { api } from './api.js'
 
-const CAT_COULEUR = { Moderne: '#f472b6', Traditionnel: '#c2a15a', 'Petit-déjeuner': '#34d399', Autre: '#94a3b8' }
+const CAT_COULEUR = { 'Vêtements': '#8b7355', 'Sacs': '#b4914f', 'Montres': '#6b7280', Autre: '#94a3b8' }
 
 // Barre horizontale simple (proportion valeur/max).
 function BarreH({ label, valeur, max, suffixe = '', couleur = '#10b981' }) {
@@ -83,7 +83,7 @@ export default function Rapports() {
             </div>
 
             <div className="bg-white rounded-xl shadow p-4">
-              <h3 className="font-bold mb-3">🍰 Ventes par catégorie</h3>
+              <h3 className="font-bold mb-3">👜 Ventes par catégorie</h3>
               {d.categories.length === 0 ? <p className="text-sm text-gray-400">Aucune vente.</p> :
                 d.categories.map(c => <BarreH key={c.categorie} label={c.categorie} valeur={c.ca} max={maxCat} suffixe=" DH" couleur={CAT_COULEUR[c.categorie] || '#94a3b8'} />)}
             </div>

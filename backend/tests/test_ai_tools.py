@@ -14,49 +14,49 @@ from app.services import services
 
 def test_chercher_produit_retourne_donnees_reelles(db, seed, conversation):
     """L'outil renvoie le vrai prix stocké en base (pas une valeur inventée par le modèle)."""
-    res = json.loads(executer_outil(db, conversation, "chercher_produit", {"terme": "chebakia"}))
+    res = json.loads(executer_outil(db, conversation, "chercher_produit", {"terme": "sac"}))
     assert len(res) == 1
-    assert res[0]["nom"] == "Chebakia"
-    assert res[0]["prix_dh"] == 60.0
+    assert res[0]["nom"] == "Sac à main cuir grainé"
+    assert res[0]["prix_dh"] == 3200.0
 
 
 def test_chercher_produit_journalise_la_recherche(db, seed, conversation):
     """Chaque recherche est loggée (analytics de la demande) — trouvée ou non."""
-    executer_outil(db, conversation, "chercher_produit", {"terme": "gateau inexistant"})
+    executer_outil(db, conversation, "chercher_produit", {"terme": "parfum inexistant"})
     recherches = db.query(models.RechercheProduit).all()
-    assert any(r.terme == "gateau inexistant" and r.trouve is False for r in recherches)
+    assert any(r.terme == "parfum inexistant" and r.trouve is False for r in recherches)
 
 
 def test_lister_produits(db, seed, conversation):
     res = json.loads(executer_outil(db, conversation, "lister_produits", {}))
-    assert {p["nom"] for p in res} == {"Chebakia", "Msemen"}
+    assert {p["nom"] for p in res} == {"Sac à main cuir grainé", "Montre automatique acier"}
 
 
 def test_creer_commande_par_nom_et_decremente_stock(db, seed, conversation):
     """La commande se fait par NOM (résolu côté serveur), calcule le vrai total, décrémente le stock."""
     res = json.loads(executer_outil(db, conversation, "creer_commande",
-                                    {"lignes": [{"produit": "Msemen", "quantite": 3}]}))
+                                    {"lignes": [{"produit": "Montre automatique acier", "quantite": 3}]}))
     assert res["succes"] is True
-    assert res["total_dh"] == 15.0  # 3 × 5 DH
-    msemen = db.get(models.Produit, seed["msemen_id"])
-    assert msemen.stock == 17  # 20 − 3
+    assert res["total_dh"] == 26700.0  # 3 × 8900 DH
+    montre = db.get(models.Produit, seed["montre_id"])
+    assert montre.stock == 17  # 20 − 3
 
 
 def test_creer_commande_anti_doublon(db, seed, conversation):
     """Une commande identique répétée (< 5 min) ne crée pas de doublon et renvoie le même numéro."""
-    args = {"lignes": [{"produit": "Chebakia", "quantite": 2}]}
+    args = {"lignes": [{"produit": "Sac à main cuir grainé", "quantite": 2}]}
     r1 = json.loads(executer_outil(db, conversation, "creer_commande", args))
     r2 = json.loads(executer_outil(db, conversation, "creer_commande", args))
 
     assert r1["numero_commande"] == r2["numero_commande"]
     assert db.query(models.Commande).count() == 1          # une seule commande créée
-    chebakia = db.get(models.Produit, seed["chebakia_id"])
-    assert chebakia.stock == 8                              # stock décrémenté une seule fois (10 − 2)
+    sac = db.get(models.Produit, seed["sac_id"])
+    assert sac.stock == 8                              # stock décrémenté une seule fois (10 − 2)
 
 
 def test_creer_commande_produit_introuvable(db, seed, conversation):
     res = json.loads(executer_outil(db, conversation, "creer_commande",
-                                    {"lignes": [{"produit": "Baklava", "quantite": 1}]}))
+                                    {"lignes": [{"produit": "Parfum", "quantite": 1}]}))
     assert res["succes"] is False
     assert "introuvable" in res["erreur"].lower()
 
@@ -135,11 +135,11 @@ def test_escalade_sans_chat_id_ne_notifie_pas(db, seed, conversation, monkeypatc
 def test_statut_commande_derniere_du_client(db, seed, conversation):
     """Sans numéro, l'outil renvoie l'état lisible de la dernière commande DU client."""
     services.creer_commande(db, client_id=conversation.client_id, conversation_id=conversation.id,
-                            lignes=[{"produit_id": seed["chebakia_id"], "quantite": 1}])
+                            lignes=[{"produit_id": seed["sac_id"], "quantite": 1}])
     res = json.loads(executer_outil(db, conversation, "statut_commande", {}))
     assert res["trouve"] is True
     assert res["etat_lisible"] == "reçue, en attente de préparation"   # statut par défaut
-    assert res["lignes"] == [{"produit": "Chebakia", "quantite": 1}]
+    assert res["lignes"] == [{"produit": "Sac à main cuir grainé", "quantite": 1}]
 
 
 def test_statut_commande_introuvable(db, seed, conversation):
@@ -153,7 +153,7 @@ def test_statut_commande_ne_fuite_pas_les_commandes_dautrui(db, seed, conversati
     autre = models.Client(identifiant_canal="autre-1", canal="telegram", nom="Autre")
     db.add(autre); db.commit(); db.refresh(autre)
     cmd = services.creer_commande(db, client_id=autre.id, conversation_id=None,
-                                  lignes=[{"produit_id": seed["msemen_id"], "quantite": 1}])
+                                  lignes=[{"produit_id": seed["montre_id"], "quantite": 1}])
     res = json.loads(executer_outil(db, conversation, "statut_commande", {"numero_commande": cmd.id}))
     assert res["trouve"] is False   # la commande existe mais pas pour CE client
 
@@ -161,12 +161,12 @@ def test_statut_commande_ne_fuite_pas_les_commandes_dautrui(db, seed, conversati
 def test_recommander_produits_populaires(db, seed, conversation):
     """Recommande les best-sellers réels, jamais épuisés, et sait exclure un produit."""
     services.creer_commande(db, client_id=conversation.client_id, conversation_id=conversation.id,
-                            lignes=[{"produit_id": seed["chebakia_id"], "quantite": 5}])  # Chebakia = top vente
+                            lignes=[{"produit_id": seed["sac_id"], "quantite": 5}])  # le sac = top vente
     res = json.loads(executer_outil(db, conversation, "recommander_produits", {}))
-    assert res[0]["nom"] == "Chebakia"                       # le plus vendu en tête
-    # Exclusion : ne resuggère pas la Chebakia
-    res2 = json.loads(executer_outil(db, conversation, "recommander_produits", {"exclure": "Chebakia"}))
-    assert all(p["nom"] != "Chebakia" for p in res2)
+    assert res[0]["nom"] == "Sac à main cuir grainé"                       # le plus vendu en tête
+    # Exclusion : ne resuggère pas la Sac à main cuir grainé
+    res2 = json.loads(executer_outil(db, conversation, "recommander_produits", {"exclure": "Sac à main cuir grainé"}))
+    assert all(p["nom"] != "Sac à main cuir grainé" for p in res2)
 
 
 def test_service_stock_insuffisant(db, seed, conversation):
@@ -174,4 +174,4 @@ def test_service_stock_insuffisant(db, seed, conversation):
     with pytest.raises(services.StockInsuffisant):
         services.creer_commande(db, client_id=conversation.client_id,
                                 conversation_id=conversation.id,
-                                lignes=[{"produit_id": seed["chebakia_id"], "quantite": 999}])
+                                lignes=[{"produit_id": seed["sac_id"], "quantite": 999}])

@@ -65,13 +65,54 @@ def historique_conversation(db: Session, conversation_id: int, limite: int) -> l
 
 # ---------------------------------------------------------------- Produits & commerce
 
+# Alias de recherche : darija (lettres latines) + arabe -> nom canonique du produit.
+# Sert de repli quand le client nomme un produit dans une autre écriture que le nom du catalogue
+# (ex. « ساعة » ou « magana » -> Montre automatique acier), pour éviter les faux « produit non vendu ».
+_ALIAS_RECHERCHE = {
+    # Vêtements
+    "mantou": "Trench en cachemire", "trench": "Trench en cachemire",
+    "منطو": "Trench en cachemire", "معطف": "Trench en cachemire",
+    "kostum": "Blazer croisé en laine", "blazer": "Blazer croisé en laine",
+    "كوستيم": "Blazer croisé en laine", "سترة": "Blazer croisé en laine",
+    "robe": "Robe de soirée en soie", "فستان": "Robe de soirée en soie",
+    "caftan": "Caftan brodé main", "kaftan": "Caftan brodé main",
+    "qaftan": "Caftan brodé main", "قفطان": "Caftan brodé main",
+    # Sacs
+    "sak": "Sac à main cuir grainé", "chkara": "Sac à main cuir grainé",
+    "شكارة": "Sac à main cuir grainé", "حقيبة يد": "Sac à main cuir grainé",
+    "cabas": "Cabas en cuir camel", "كابا": "Cabas en cuir camel",
+    "pochette": "Pochette de soirée satin", "محفظة": "Pochette de soirée satin",
+    "sac a dos": "Sac à dos cuir nappa", "sac à dos": "Sac à dos cuir nappa",
+    "حقيبة ظهر": "Sac à dos cuir nappa",
+    # Montres
+    "magana": "Montre automatique acier", "ماكانة": "Montre automatique acier",
+    "ماگانة": "Montre automatique acier", "ساعة": "Montre automatique acier",
+    "chrono": "Chronographe or rose", "كرونو": "Chronographe or rose",
+    "squelette": "Montre squelette cuir", "هيكلية": "Montre squelette cuir",
+    "nacre": "Montre femme nacre", "عرق اللؤلؤ": "Montre femme nacre",
+}
+
+
 def chercher_produits(db: Session, terme: str) -> list[models.Produit]:
-    """Recherche insensible à la casse sur le nom et la catégorie."""
+    """Recherche insensible à la casse sur le nom et la catégorie, avec repli par
+    alias darija/arabe (ex. « شكارة », « magana ») pour retrouver le bon produit
+    même quand il est nommé dans une autre écriture que celle du catalogue."""
     like = f"%{terme}%"
-    return (db.query(models.Produit)
-            .filter(models.Produit.actif.is_(True))
-            .filter((models.Produit.nom.ilike(like)) | (models.Produit.categorie.ilike(like)))
-            .limit(10).all())
+    produits = (db.query(models.Produit)
+                .filter(models.Produit.actif.is_(True))
+                .filter((models.Produit.nom.ilike(like)) | (models.Produit.categorie.ilike(like)))
+                .limit(10).all())
+    if produits:
+        return produits
+    # Repli : le terme correspond-il à un alias darija/arabe d'un produit ?
+    t = (terme or "").strip().lower()
+    cibles = {nom for alias, nom in _ALIAS_RECHERCHE.items() if alias in t or t == alias}
+    if cibles:
+        return (db.query(models.Produit)
+                .filter(models.Produit.actif.is_(True))
+                .filter(models.Produit.nom.in_(cibles))
+                .limit(10).all())
+    return []
 
 
 def lister_produits(db: Session, categorie: Optional[str] = None) -> list[models.Produit]:

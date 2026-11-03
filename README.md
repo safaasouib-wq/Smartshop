@@ -78,7 +78,7 @@ cp .env.example .env
 
 ```bash
 docker-compose up --build -d
-docker-compose exec backend python seed.py   # données de démo (pâtisserie + produits)
+docker-compose exec backend python seed.py   # données de démo (boutique de luxe + produits)
 ```
 
 - API + doc Swagger : http://localhost:8000/docs
@@ -113,9 +113,9 @@ curl "https://api.telegram.org/bot<TON_TOKEN>/setWebhook?url=https://<URL>/webho
 ### 5. Tester 🎉
 
 Envoyer à ton bot sur Telegram :
-- `Salam, ch7al taman dyal chebakia ?` → l'IA cherche le produit et donne le vrai prix
+- `Salam, ch7al taman dyal sak dyal jild ?` → l'IA cherche le produit et donne le vrai prix
 - `chno kayn 3ndkom ?` → l'IA liste le catalogue réel
-- `Bghit ncommandi 2 boîtes cornes de gazelle` → prise de commande avec récapitulatif
+- `Bghit ncommandi 2 sakat dyal jild` → prise de commande avec récapitulatif
 - `Bghit nhder m3a chi wa7ed` → escalade vers le commerçant
 
 ## CI/CD (GitHub Actions)

@@ -3,8 +3,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { api } from './api.js'
 
-const CATEGORIES = ['Traditionnel', 'Moderne', 'Petit-déjeuner']
-const VIDE = { nom: '', description: '', prix: 0, stock: 0, seuil_stock: 5, categorie: 'Traditionnel', image_url: '', actif: true }
+const CATEGORIES = ['Vêtements', 'Sacs', 'Montres']
+const VIDE = { nom: '', description: '', prix: 0, stock: 0, seuil_stock: 5, categorie: 'Vêtements', image_url: '', actif: true }
 
 export default function ProduitsAdmin() {
   const [produits, setProduits] = useState([])
@@ -73,7 +73,7 @@ export default function ProduitsAdmin() {
           <tbody>
             {produits.map(p => (
               <tr key={p.id} className="border-t">
-                <td className="p-2">{p.image_url ? <img src={p.image_url} alt="" className="h-10 w-10 object-cover rounded" /> : <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">🧁</div>}</td>
+                <td className="p-2">{p.image_url ? <img src={p.image_url} alt="" className="h-10 w-10 object-cover rounded" /> : <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">👜</div>}</td>
                 <td className="p-3 font-medium">{p.nom}</td>
                 <td className="p-3 text-gray-500">{p.categorie}</td>
                 <td className="p-3">{p.prix} DH</td>

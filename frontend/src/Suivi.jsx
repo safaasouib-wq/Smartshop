@@ -93,7 +93,7 @@ export default function Suivi() {
     <div className="min-h-screen bg-[#f7efe3] text-stone-800">
       <header className="bg-white border-b border-stone-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <a href="/" className="font-serif-display text-lg">🕊️ Pâtisserie Al Baraka</a>
+          <a href="/" className="font-serif-display text-lg tracking-[0.12em] uppercase">✦ Maison Noor</a>
           <span className="text-sm text-stone-500">Commande #{data.id}</span>
         </div>
       </header>

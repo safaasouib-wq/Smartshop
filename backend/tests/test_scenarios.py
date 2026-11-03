@@ -26,24 +26,24 @@ def test_client_passe_commande_retrait_depuis_la_vitrine(client, seed):
     """Parcours nominal : panier → commande → n° de suivi, stock décrémenté, vrai total."""
     r = client.post("/api/commander", json={
         "mode": "retrait", "nom": "Yasmine",
-        "lignes": [{"produit": "Chebakia", "quantite": 2}],
+        "lignes": [{"produit": "Sac à main cuir grainé", "quantite": 2}],
     })
     assert r.status_code == 200, r.text
     data = r.json()
-    assert data["total"] == 120.0           # 2 × 60 DH, calculé côté serveur
+    assert data["total"] == 6400.0          # 2 × 3200 DH, calculé côté serveur
     assert data["mode"] == "retrait"
     assert data["suivi_url"] == f"/suivi?id={data['numero']}"
 
     # Le stock réel a bien été décrémenté (10 − 2), visible sur la vitrine publique.
     vitrine = client.get("/api/vitrine").json()
-    chebakia = next(p for p in vitrine["produits"] if p["nom"] == "Chebakia")
-    assert chebakia["stock"] == 8
+    sac = next(p for p in vitrine["produits"] if p["nom"] == "Sac à main cuir grainé")
+    assert sac["stock"] == 8
 
 
 def test_suivi_de_commande_est_public_et_liste_les_lignes(client, seed):
     """La page de suivi (polling) renvoie l'état d'avancement sans authentification."""
     numero = client.post("/api/commander", json={
-        "mode": "retrait", "lignes": [{"produit": "Msemen", "quantite": 4}],
+        "mode": "retrait", "lignes": [{"produit": "Montre automatique acier", "quantite": 4}],
     }).json()["numero"]
 
     r = client.get(f"/api/commande/{numero}/suivi")
@@ -52,7 +52,7 @@ def test_suivi_de_commande_est_public_et_liste_les_lignes(client, seed):
     assert suivi["mode"] == "retrait"
     assert suivi["etape_courante"] == 0                    # « Commande reçue »
     assert suivi["etapes"][0]["faite"] is True
-    assert {"produit": "Msemen", "quantite": 4} in suivi["lignes"]
+    assert {"produit": "Montre automatique acier", "quantite": 4} in suivi["lignes"]
 
 
 # ====================================================================
@@ -68,7 +68,7 @@ def test_commande_livraison_puis_livraison_demarree_et_livree(client, seed, logi
     numero = client.post("/api/commander", json={
         "mode": "livraison", "nom": "Karim", "telephone": "0612345678",
         "adresse": "Maârif, Casablanca", "lat": CASA_LAT, "lng": CASA_LNG,
-        "lignes": [{"produit": "Chebakia", "quantite": 1}],
+        "lignes": [{"produit": "Sac à main cuir grainé", "quantite": 1}],
     }).json()["numero"]
 
     headers = login("admin@smartshop.ma", "admin123")
@@ -136,34 +136,34 @@ def _dire(db, conversation, texte):
 
 
 def test_conversation_ia_le_client_consulte_la_carte_puis_commande(db, seed, conversation, monkeypatch):
-    """Le client demande la carte (l'IA appelle lister_produits), puis commande 2 Chebakia
+    """Le client demande la carte (l'IA appelle lister_produits), puis commande 2 sacs
     (l'IA appelle creer_commande) : une vraie commande est créée avec le bon total/stock."""
     _script_llm(
         monkeypatch,
         # Tour 1 : « chno kayn 3ndkom ? » → l'IA consulte le catalogue…
         _FakeMessage(tool_calls=[_FakeToolCall("c1", "lister_produits", "{}")]),
         # …puis répond en texte.
-        _FakeMessage(content="On a Chebakia (60 DH) et Msemen (5 DH). Vous voulez quoi ? 😊"),
-        # Tour 2 : « bghit jouj chebakia » → l'IA crée la commande…
+        _FakeMessage(content="On a Sac à main cuir grainé (3200 DH) et Montre automatique acier (8900 DH). Vous voulez quoi ? 😊"),
+        # Tour 2 : « bghit jouj sac » → l'IA crée la commande…
         _FakeMessage(tool_calls=[_FakeToolCall(
             "c2", "creer_commande",
-            '{"lignes": [{"produit": "Chebakia", "quantite": 2}]}')]),
+            '{"lignes": [{"produit": "Sac à main cuir grainé", "quantite": 2}]}')]),
         # …puis confirme.
-        _FakeMessage(content="C'est noté ✅ 2 Chebakia = 120 DH."),
+        _FakeMessage(content="C'est noté ✅ 2 sacs = 6400 DH."),
     )
 
     _dire(db, conversation, "Salam, chno kayn 3ndkom ?")
     reponse1 = engine.generer_reponse(db, conversation)
-    assert "Chebakia" in reponse1                          # l'IA a bien listé la carte
+    assert "Sac à main cuir grainé" in reponse1                          # l'IA a bien listé la carte
 
-    _dire(db, conversation, "bghit jouj chebakia")
+    _dire(db, conversation, "bghit jouj sac")
     reponse2 = engine.generer_reponse(db, conversation)
-    assert "120" in reponse2
+    assert "6400" in reponse2
 
     # Effet réel en base : la commande existe, avec le bon total, et le stock a baissé.
     commande = db.query(models.Commande).one()
-    assert commande.total == 120.0
-    assert db.get(models.Produit, seed["chebakia_id"]).stock == 8
+    assert commande.total == 6400.0
+    assert db.get(models.Produit, seed["sac_id"]).stock == 8
 
 
 def test_conversation_ia_panne_llm_ne_bloque_pas_le_client(db, seed, conversation, monkeypatch):
@@ -198,13 +198,13 @@ def test_compte_client_inscription_commande_et_historique(client, seed):
 
     # Commande passée en étant connecté → rattachée au compte.
     client.post("/api/commander", headers=auth, json={
-        "mode": "retrait", "lignes": [{"produit": "Msemen", "quantite": 2}],
+        "mode": "retrait", "lignes": [{"produit": "Montre automatique acier", "quantite": 2}],
     })
 
     moi = client.get("/api/client/moi", headers=auth).json()
     assert moi["client"]["email"] == "salma@test.ma"
     assert len(moi["en_cours"]) == 1
-    assert moi["en_cours"][0]["lignes"] == [{"produit": "Msemen", "quantite": 2}]
+    assert moi["en_cours"][0]["lignes"] == [{"produit": "Montre automatique acier", "quantite": 2}]
 
 
 def test_compte_client_connexion_refuse_mauvais_mot_de_passe(client, seed):
@@ -228,7 +228,7 @@ def test_commander_un_produit_inexistant_est_refuse(client, seed):
 
 def test_commander_au_dela_du_stock_est_refuse(client, seed):
     """La règle métier F3.2 : impossible de commander plus que le stock disponible."""
-    r = client.post("/api/commander", json={"lignes": [{"produit": "Chebakia", "quantite": 999}]})
+    r = client.post("/api/commander", json={"lignes": [{"produit": "Sac à main cuir grainé", "quantite": 999}]})
     assert r.status_code == 400
     assert "stock" in r.json()["detail"].lower()
 
@@ -238,17 +238,17 @@ def test_commander_au_dela_du_stock_est_refuse(client, seed):
 # ====================================================================
 
 def test_best_seller_reflete_les_ventes_reelles(client, seed):
-    """Avant toute vente, aucun best-seller. Après avoir vendu de la Chebakia, elle est
-    marquée best-seller sur la vitrine ; le Msemen (jamais vendu) ne l'est pas."""
+    """Avant toute vente, aucun best-seller. Après avoir vendu de la Sac à main cuir grainé, elle est
+    marquée best-seller sur la vitrine ; le Montre automatique acier (jamais vendu) ne l'est pas."""
     avant = client.get("/api/vitrine").json()["produits"]
     assert all(p["best_seller"] is False for p in avant)   # pas de vente ⇒ pas de best-seller
 
-    # On vend de la Chebakia (et pas de Msemen).
-    client.post("/api/commander", json={"lignes": [{"produit": "Chebakia", "quantite": 3}]})
+    # On vend de la Sac à main cuir grainé (et pas de Montre automatique acier).
+    client.post("/api/commander", json={"lignes": [{"produit": "Sac à main cuir grainé", "quantite": 3}]})
 
     apres = {p["nom"]: p["best_seller"] for p in client.get("/api/vitrine").json()["produits"]}
-    assert apres["Chebakia"] is True
-    assert apres["Msemen"] is False
+    assert apres["Sac à main cuir grainé"] is True
+    assert apres["Montre automatique acier"] is False
 
 
 # ====================================================================
@@ -259,8 +259,8 @@ def test_reponses_ia_sans_markdown_pour_messagerie():
     """Telegram/WhatsApp envoient en texte BRUT : le nettoyage serveur retire tout markdown
     (gras **, tableaux |, titres #) que le modèle pourrait produire, sinon il s'afficherait tel quel."""
     from app.ai.engine import nettoyer_markdown as n
-    assert n("Voici **Al Baraka** !") == "Voici Al Baraka !"
-    assert n("- **Chebakia** — 60 DH") == "- Chebakia — 60 DH"
-    out = n("| Produit | Prix |\n|---|---|\n• Msemen — 15 DH")
+    assert n("Voici **Maison Noor** !") == "Voici Maison Noor !"
+    assert n("- **Sac à main cuir grainé** — 3200 DH") == "- Sac à main cuir grainé — 3200 DH"
+    out = n("| Produit | Prix |\n|---|---|\n• Montre automatique acier — 8900 DH")
     assert "|" not in out and "*" not in out and "#" not in out
-    assert "Msemen — 15 DH" in out
+    assert "Montre automatique acier — 8900 DH" in out

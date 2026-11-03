@@ -14,9 +14,9 @@ def test_vitrine_est_publique(client, seed):
     assert r.status_code == 200
     data = r.json()
     noms = {p["nom"] for p in data["produits"]}
-    assert {"Chebakia", "Msemen"} <= noms
-    chebakia = next(p for p in data["produits"] if p["nom"] == "Chebakia")
-    assert chebakia["prix"] == 60.0  # prix réel de la BDD, pas une valeur inventée
+    assert {"Sac à main cuir grainé", "Montre automatique acier"} <= noms
+    sac = next(p for p in data["produits"] if p["nom"] == "Sac à main cuir grainé")
+    assert sac["prix"] == 3200.0  # prix réel de la BDD, pas une valeur inventée
 
 
 def test_produits_exige_authentification(client, seed):
@@ -49,10 +49,10 @@ def test_admin_liste_les_produits(client, seed, login):
 def test_creation_produit(client, seed, login):
     headers = login("admin@smartshop.ma", "admin123")
     r = client.post("/api/produits", headers=headers, json={
-        "nom": "Cornes de gazelle", "prix": 45.0, "stock": 8, "categorie": "Traditionnel",
+        "nom": "Écharpe en cachemire", "prix": 850.0, "stock": 8, "categorie": "Vêtements",
     })
     assert r.status_code == 201
-    assert r.json()["nom"] == "Cornes de gazelle"
+    assert r.json()["nom"] == "Écharpe en cachemire"
     # Le nouveau produit est bien listé
     r2 = client.get("/api/produits", headers=headers)
     assert len(r2.json()) == 3

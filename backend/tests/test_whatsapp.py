@@ -7,7 +7,7 @@ from app.adapters.whatsapp import whatsapp_channel
 from app.config import settings
 
 
-def _payload_texte(texte="Salam, ch7al taman dyal chebakia ?", nom="Youssef", wa_id="212600000000"):
+def _payload_texte(texte="Salam, ch7al taman dyal sac ?", nom="Youssef", wa_id="212600000000"):
     """Reproduit le format d'un message texte entrant de la WhatsApp Cloud API."""
     return {
         "object": "whatsapp_business_account",
@@ -34,7 +34,7 @@ def test_parse_message_texte():
     assert msg.canal == "whatsapp"
     assert msg.identifiant_canal == "212600000000"
     assert msg.nom_client == "Youssef"
-    assert msg.texte == "Salam, ch7al taman dyal chebakia ?"
+    assert msg.texte == "Salam, ch7al taman dyal sac ?"
 
 
 def test_parse_ignore_accuse_de_livraison():

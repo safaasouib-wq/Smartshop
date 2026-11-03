@@ -17,12 +17,19 @@ FENETRE_ANTI_DOUBLON = timedelta(minutes=5)  # une commande identique dans ce d�
 
 # Noms marocains (darija) affichables entre parenthèses pour les produits au nom français.
 # Sert UNIQUEMENT à l'affichage ; la commande utilise toujours le nom exact du catalogue.
-# (Chebakia, Msemen, Baghrir sont déjà des noms darija → pas d'alias.)
 ALIAS_DARIJA = {
-    "Cornes de gazelle": "Kaab lghzal",
-    "Gâteau d'anniversaire": "Gato",
-    "Tarte au citron": "Tarte dyal l7amd",
-    "Briouates aux amandes": "Briwat dyal louz",
+    "Trench en cachemire": "Mantou cachemire",
+    "Blazer croisé en laine": "Veste kostum",
+    "Robe de soirée en soie": "Robe dyal sahra",
+    "Caftan brodé main": "Qaftan mkhayet b lid",
+    "Sac à main cuir grainé": "Sak dyal jild",
+    "Cabas en cuir camel": "Sak kbir dyal jild",
+    "Pochette de soirée satin": "Pochette dyal sahra",
+    "Sac à dos cuir nappa": "Sak d dhar",
+    "Montre automatique acier": "Magana automatique",
+    "Chronographe or rose": "Magana chrono dhabiya",
+    "Montre squelette cuir": "Magana squelette",
+    "Montre femme nacre": "Magana dyal 3ayalat",
 }
 
 # ------------------------------------------------------------------ Schémas des outils
@@ -58,7 +65,7 @@ TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "categorie": {"type": ["string", "null"], "description": "Catégorie optionnelle pour filtrer (ex: 'Traditionnel', 'Moderne', 'Petit-déjeuner'). Mettre null ou omettre pour tout lister."}
+                    "categorie": {"type": ["string", "null"], "description": "Catégorie optionnelle pour filtrer (ex: 'Vêtements', 'Sacs', 'Montres'). Mettre null ou omettre pour tout lister."}
                 },
             },
         },
@@ -77,7 +84,7 @@ TOOLS = [
                         "items": {
                             "type": "object",
                             "properties": {
-                                "produit": {"type": "string", "description": "Nom du produit exactement tel que retourné par chercher_produit (ex: 'Msemen', 'Chebakia')"},
+                                "produit": {"type": "string", "description": "Nom du produit exactement tel que retourné par chercher_produit (ex: 'Sac à main cuir grainé', 'Montre automatique acier')"},
                                 "quantite": {"type": "integer"},
                             },
                             "required": ["produit", "quantite"],

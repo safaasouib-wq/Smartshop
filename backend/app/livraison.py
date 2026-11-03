@@ -109,7 +109,7 @@ def appliquer_position(db, commande: models.Commande, lat: float, lng: float) ->
         if commande.suivi_livraison == "proche":
             notifier_client(db, commande, "🛵 Votre livreur arrive dans ~5 minutes !")
         elif commande.suivi_livraison == "livree":
-            notifier_client(db, commande, "✅ Votre livreur est arrivé à votre adresse. Bon appétit ! 🍰")
+            notifier_client(db, commande, "✅ Votre livreur est arrivé à votre adresse. Belle découverte ! ✨")
 
     return {"suivi": commande.suivi_livraison, "distance_km": round(dist, 3)}
 
