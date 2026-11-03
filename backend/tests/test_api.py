@@ -14,9 +14,9 @@ def test_vitrine_est_publique(client, seed):
     assert r.status_code == 200
     data = r.json()
     noms = {p["nom"] for p in data["produits"]}
-    assert {"Sac à main cuir grainé", "Montre automatique acier"} <= noms
-    sac = next(p for p in data["produits"] if p["nom"] == "Sac à main cuir grainé")
-    assert sac["prix"] == 3200.0  # prix réel de la BDD, pas une valeur inventée
+    assert {"Sac à main cuir grainé chocolat", "Montre ovale dorée"} <= noms
+    sac = next(p for p in data["produits"] if p["nom"] == "Sac à main cuir grainé chocolat")
+    assert sac["prix"] == 2200.0  # prix réel de la BDD, pas une valeur inventée
 
 
 def test_produits_exige_authentification(client, seed):

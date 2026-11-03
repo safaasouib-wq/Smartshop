@@ -6,19 +6,27 @@ from app import models
 
 # terme de recherche Commons par nom de produit (le plus spécifique possible)
 TERMES = {
-    "Trench en cachemire": ["Trench coat", "Cashmere coat"],
-    "Blazer croisé en laine": ["Blazer jacket", "Double-breasted blazer"],
-    "Robe de soirée en soie": ["Silk evening dress", "Evening gown"],
-    "Caftan brodé main": ["Moroccan kaftan", "Caftan"],
-    "Sac à main cuir grainé": ["Leather handbag", "Handbag"],
-    "Cabas en cuir camel": ["Leather tote bag", "Tote bag"],
-    "Pochette de soirée satin": ["Evening clutch bag", "Clutch bag"],
-    "Sac à dos cuir nappa": ["Leather backpack", "Backpack leather"],
-    "Montre automatique acier": ["Automatic wristwatch", "Stainless steel watch"],
-    "Chronographe or rose": ["Chronograph watch", "Rose gold watch"],
-    "Montre squelette cuir": ["Skeleton watch", "Skeleton wristwatch"],
-    "Montre femme nacre": ["Women wristwatch", "Mother of pearl watch"],
+    "Manteau long en laine ivoire": ["Wool coat", "Beige overcoat"],
+    "Caftan satin bleu canard": ["Moroccan kaftan", "Caftan"],
+    "Caftan satin perle": ["Moroccan kaftan embroidery", "Kaftan"],
+    "Caftan satin prune": ["Moroccan caftan", "Kaftan dress"],
+    "Robe longue satin cacao": ["Satin evening dress", "Evening gown"],
+    "Blazer croisé boutons dorés": ["Double-breasted blazer", "Blazer jacket"],
+    "Blazer oversize chocolat": ["Brown blazer", "Blazer jacket"],
+    "Pull maille bordeaux": ["Knit sweater", "Wool jumper"],
+    "Blouse lavallière satin beige": ["Satin blouse", "Pussy bow blouse"],
+    "Blouse lavallière mousseline bordeaux": ["Chiffon blouse", "Blouse"],
+    "Cabas cuir marron et twilly": ["Leather tote bag", "Tote bag"],
+    "Cabas bordeaux fermoir doré": ["Leather shopper bag", "Tote bag"],
+    "Sac à main cuir grainé chocolat": ["Leather handbag", "Handbag"],
+    "Sac trapèze cuir camel": ["Leather handbag frame", "Top handle bag"],
+    "Mini sac bordeaux": ["Mini handbag", "Small leather bag"],
+    "Montre joaillière sertie": ["Jewelled watch", "Diamond wristwatch"],
+    "Coffret montre bicolore et jonc": ["Two tone wristwatch", "Watch gift box"],
+    "Montre octogonale dorée": ["Gold wristwatch", "Octagonal watch"],
+    "Montre ovale dorée": ["Women wristwatch", "Gold ladies watch"],
 }
+
 
 API = "https://commons.wikimedia.org/w/api.php"
 HEADERS = {"User-Agent": "SmartShopVitrine/1.0 (demo PFA; contact: local)"}

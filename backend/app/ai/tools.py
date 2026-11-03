@@ -18,18 +18,25 @@ FENETRE_ANTI_DOUBLON = timedelta(minutes=5)  # une commande identique dans ce d�
 # Noms marocains (darija) affichables entre parenthèses pour les produits au nom français.
 # Sert UNIQUEMENT à l'affichage ; la commande utilise toujours le nom exact du catalogue.
 ALIAS_DARIJA = {
-    "Trench en cachemire": "Mantou cachemire",
-    "Blazer croisé en laine": "Veste kostum",
-    "Robe de soirée en soie": "Robe dyal sahra",
-    "Caftan brodé main": "Qaftan mkhayet b lid",
-    "Sac à main cuir grainé": "Sak dyal jild",
-    "Cabas en cuir camel": "Sak kbir dyal jild",
-    "Pochette de soirée satin": "Pochette dyal sahra",
-    "Sac à dos cuir nappa": "Sak d dhar",
-    "Montre automatique acier": "Magana automatique",
-    "Chronographe or rose": "Magana chrono dhabiya",
-    "Montre squelette cuir": "Magana squelette",
-    "Montre femme nacre": "Magana dyal 3ayalat",
+    "Manteau long en laine ivoire": "Mantou twil dyal souf",
+    "Caftan satin bleu canard": "Qaftan satan zreq",
+    "Caftan satin perle": "Qaftan satan loulou",
+    "Caftan satin prune": "Qaftan satan prune",
+    "Robe longue satin cacao": "Robe twila satan qahwiya",
+    "Blazer croisé boutons dorés": "Veste kostum b sdaf dhabiyin",
+    "Blazer oversize chocolat": "Veste kostum wasaa qahwiya",
+    "Pull maille bordeaux": "Trico bordeaux",
+    "Blouse lavallière satin beige": "Blouza satan beige",
+    "Blouse lavallière mousseline bordeaux": "Blouza mousseline bordeaux",
+    "Cabas cuir marron et twilly": "Sak kbir dyal jild qahwi",
+    "Cabas bordeaux fermoir doré": "Sak kbir bordeaux",
+    "Sac à main cuir grainé chocolat": "Sak dyal jild qahwi",
+    "Sac trapèze cuir camel": "Sak dyal jild camel",
+    "Mini sac bordeaux": "Sak sghir bordeaux",
+    "Montre joaillière sertie": "Magana mrassaa b dyamant",
+    "Coffret montre bicolore et jonc": "Magana m3a brasslet",
+    "Montre octogonale dorée": "Magana dhabiya",
+    "Montre ovale dorée": "Magana dhabiya ovale",
 }
 
 # ------------------------------------------------------------------ Schémas des outils
@@ -84,7 +91,7 @@ TOOLS = [
                         "items": {
                             "type": "object",
                             "properties": {
-                                "produit": {"type": "string", "description": "Nom du produit exactement tel que retourné par chercher_produit (ex: 'Sac à main cuir grainé', 'Montre automatique acier')"},
+                                "produit": {"type": "string", "description": "Nom du produit exactement tel que retourné par chercher_produit (ex: 'Sac à main cuir grainé chocolat', 'Montre ovale dorée')"},
                                 "quantite": {"type": "integer"},
                             },
                             "required": ["produit", "quantite"],

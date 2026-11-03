@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from 'react'
 import { clientApi, connecter, deconnecter } from './clientApi.js'
 
-const OR = '#8a5a34'
+const OR = '#0b0b0b'
 
 function Modale({ children, onClose }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="bg-white w-full sm:max-w-md sm:rounded-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-white w-full sm:max-w-md max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {children}
       </div>
     </div>
@@ -36,30 +36,30 @@ export function AuthModal({ onClose, onAuth }) {
     <Modale onClose={onClose}>
       <div className="p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-serif-display text-2xl">Mon compte</h2>
+          <h2 className="text-[11px] tracking-[0.3em] uppercase">Mon compte</h2>
           <button onClick={onClose} className="text-stone-400 text-2xl leading-none">×</button>
         </div>
         <div className="flex gap-2 mb-5">
           {[['connexion', 'Connexion'], ['inscription', 'Créer un compte']].map(([v, t]) => (
             <button key={v} onClick={() => { setTab(v); setErreur('') }}
-                    className={`flex-1 py-2 rounded-lg text-sm font-semibold ${tab === v ? 'text-white' : 'bg-stone-100 text-stone-500'}`}
+                    className={`flex-1 py-2 text-[10px] tracking-[0.22em] uppercase ${tab === v ? 'text-white' : 'bg-stone-100 text-stone-500'}`}
                     style={tab === v ? { background: OR } : {}}>{t}</button>
           ))}
         </div>
         <div className="space-y-3">
           {tab === 'inscription' && (
-            <input value={f.nom} onChange={maj('nom')} placeholder="Votre nom" className="w-full border rounded-lg p-2.5 text-sm" />
+            <input value={f.nom} onChange={maj('nom')} placeholder="Votre nom" className="w-full border border-[#e3e1dd] p-3 text-sm focus:outline-none focus:border-black" />
           )}
-          <input value={f.email} onChange={maj('email')} type="email" placeholder="Email" className="w-full border rounded-lg p-2.5 text-sm" />
+          <input value={f.email} onChange={maj('email')} type="email" placeholder="Email" className="w-full border border-[#e3e1dd] p-3 text-sm focus:outline-none focus:border-black" />
           <input value={f.mot_de_passe} onChange={maj('mot_de_passe')} type="password" placeholder="Mot de passe"
-                 onKeyDown={e => e.key === 'Enter' && soumettre()} className="w-full border rounded-lg p-2.5 text-sm" />
+                 onKeyDown={e => e.key === 'Enter' && soumettre()} className="w-full border border-[#e3e1dd] p-3 text-sm focus:outline-none focus:border-black" />
           {tab === 'inscription' && (
-            <input value={f.telephone} onChange={maj('telephone')} placeholder="Téléphone (optionnel)" className="w-full border rounded-lg p-2.5 text-sm" />
+            <input value={f.telephone} onChange={maj('telephone')} placeholder="Téléphone (optionnel)" className="w-full border border-[#e3e1dd] p-3 text-sm focus:outline-none focus:border-black" />
           )}
         </div>
         {erreur && <p className="text-red-600 text-sm mt-3">{erreur}</p>}
         <button onClick={soumettre} disabled={envoi}
-                className="w-full mt-5 text-white font-semibold py-3 rounded-xl disabled:opacity-60" style={{ background: OR }}>
+                className="w-full mt-6 text-white text-[10px] tracking-[0.3em] uppercase py-4 disabled:opacity-50" style={{ background: OR }}>
           {envoi ? '…' : tab === 'connexion' ? 'Se connecter' : 'Créer mon compte'}
         </button>
       </div>
@@ -73,7 +73,7 @@ function Ligne({ c }) {
     ? ({ '': 'À préparer', en_route: 'En route', proche: 'Bientôt chez vous', livree: 'Livrée' }[c.suivi_livraison] || c.statut)
     : c.statut
   return (
-    <div className="border border-stone-100 rounded-xl p-3">
+    <div className="border border-[#e3e1dd] p-4">
       <div className="flex items-center justify-between">
         <span className="font-semibold text-sm">Commande #{c.id}</span>
         <span className="text-xs text-stone-400">{new Date(c.date).toLocaleDateString('fr-FR')}</span>
@@ -81,7 +81,7 @@ function Ligne({ c }) {
       <div className="text-xs text-stone-500 mt-0.5">{badge} · {c.lignes.map(l => `${l.quantite}× ${l.produit}`).join(', ')}</div>
       <div className="flex items-center justify-between mt-2">
         <span className="font-semibold" style={{ color: OR }}>{c.total} DH</span>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">{etat}</span>
+        <span className="text-[10px] tracking-[0.2em] uppercase px-2 py-0.5 bg-stone-100 text-stone-600">{etat}</span>
       </div>
     </div>
   )
@@ -101,7 +101,7 @@ export function ComptePanel({ compte, onClose, onLogout, onRecommander }) {
     <Modale onClose={onClose}>
       <div className="p-6">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="font-serif-display text-2xl">Bonjour {compte.nom} 👋</h2>
+          <h2 className="text-[11px] tracking-[0.3em] uppercase">Bonjour {compte.nom}</h2>
           <button onClick={onClose} className="text-stone-400 text-2xl leading-none">×</button>
         </div>
         <p className="text-sm text-stone-400 mb-5">{compte.email}</p>
@@ -140,7 +140,7 @@ export function ComptePanel({ compte, onClose, onLogout, onRecommander }) {
           </>
         )}
 
-        <button onClick={deco} className="w-full mt-6 text-sm text-stone-500 hover:text-red-600 border border-stone-200 rounded-lg py-2">
+        <button onClick={deco} className="w-full mt-8 text-[10px] tracking-[0.25em] uppercase text-stone-500 hover:text-black border border-[#e3e1dd] py-3">
           Se déconnecter
         </button>
       </div>

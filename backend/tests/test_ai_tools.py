@@ -16,8 +16,8 @@ def test_chercher_produit_retourne_donnees_reelles(db, seed, conversation):
     """L'outil renvoie le vrai prix stocké en base (pas une valeur inventée par le modèle)."""
     res = json.loads(executer_outil(db, conversation, "chercher_produit", {"terme": "sac"}))
     assert len(res) == 1
-    assert res[0]["nom"] == "Sac à main cuir grainé"
-    assert res[0]["prix_dh"] == 3200.0
+    assert res[0]["nom"] == "Sac à main cuir grainé chocolat"
+    assert res[0]["prix_dh"] == 2200.0
 
 
 def test_chercher_produit_journalise_la_recherche(db, seed, conversation):
@@ -29,22 +29,22 @@ def test_chercher_produit_journalise_la_recherche(db, seed, conversation):
 
 def test_lister_produits(db, seed, conversation):
     res = json.loads(executer_outil(db, conversation, "lister_produits", {}))
-    assert {p["nom"] for p in res} == {"Sac à main cuir grainé", "Montre automatique acier"}
+    assert {p["nom"] for p in res} == {"Sac à main cuir grainé chocolat", "Montre ovale dorée"}
 
 
 def test_creer_commande_par_nom_et_decremente_stock(db, seed, conversation):
     """La commande se fait par NOM (résolu côté serveur), calcule le vrai total, décrémente le stock."""
     res = json.loads(executer_outil(db, conversation, "creer_commande",
-                                    {"lignes": [{"produit": "Montre automatique acier", "quantite": 3}]}))
+                                    {"lignes": [{"produit": "Montre ovale dorée", "quantite": 3}]}))
     assert res["succes"] is True
-    assert res["total_dh"] == 26700.0  # 3 × 8900 DH
+    assert res["total_dh"] == 4800.0  # 3 × 1600 DH
     montre = db.get(models.Produit, seed["montre_id"])
     assert montre.stock == 17  # 20 − 3
 
 
 def test_creer_commande_anti_doublon(db, seed, conversation):
     """Une commande identique répétée (< 5 min) ne crée pas de doublon et renvoie le même numéro."""
-    args = {"lignes": [{"produit": "Sac à main cuir grainé", "quantite": 2}]}
+    args = {"lignes": [{"produit": "Sac à main cuir grainé chocolat", "quantite": 2}]}
     r1 = json.loads(executer_outil(db, conversation, "creer_commande", args))
     r2 = json.loads(executer_outil(db, conversation, "creer_commande", args))
 
@@ -139,7 +139,7 @@ def test_statut_commande_derniere_du_client(db, seed, conversation):
     res = json.loads(executer_outil(db, conversation, "statut_commande", {}))
     assert res["trouve"] is True
     assert res["etat_lisible"] == "reçue, en attente de préparation"   # statut par défaut
-    assert res["lignes"] == [{"produit": "Sac à main cuir grainé", "quantite": 1}]
+    assert res["lignes"] == [{"produit": "Sac à main cuir grainé chocolat", "quantite": 1}]
 
 
 def test_statut_commande_introuvable(db, seed, conversation):
@@ -163,10 +163,10 @@ def test_recommander_produits_populaires(db, seed, conversation):
     services.creer_commande(db, client_id=conversation.client_id, conversation_id=conversation.id,
                             lignes=[{"produit_id": seed["sac_id"], "quantite": 5}])  # le sac = top vente
     res = json.loads(executer_outil(db, conversation, "recommander_produits", {}))
-    assert res[0]["nom"] == "Sac à main cuir grainé"                       # le plus vendu en tête
-    # Exclusion : ne resuggère pas la Sac à main cuir grainé
-    res2 = json.loads(executer_outil(db, conversation, "recommander_produits", {"exclure": "Sac à main cuir grainé"}))
-    assert all(p["nom"] != "Sac à main cuir grainé" for p in res2)
+    assert res[0]["nom"] == "Sac à main cuir grainé chocolat"                       # le plus vendu en tête
+    # Exclusion : ne resuggère pas le sac à main
+    res2 = json.loads(executer_outil(db, conversation, "recommander_produits", {"exclure": "Sac à main cuir grainé chocolat"}))
+    assert all(p["nom"] != "Sac à main cuir grainé chocolat" for p in res2)
 
 
 def test_service_stock_insuffisant(db, seed, conversation):

@@ -3,7 +3,7 @@ et pointe image_url de chaque produit dessus. Usage : python wire_photos.py
 
 Nommez chaque photo avec le mot-clé du produit (ex. « trench.jpg », « sac-main-2.jpg ») :
 le script cherche la première image dont le nom de fichier contient ce mot-clé.
-Par défaut, le catalogue utilise les visuels SVG livrés dans public/products/.
+Par défaut, le catalogue utilise les photos déjà livrées dans public/products/.
 """
 import glob
 import os
@@ -18,19 +18,27 @@ os.makedirs(DEST, exist_ok=True)
 
 # (sous-chaîne unique du nom de fichier, nom produit exact, nom fichier destination)
 MAP = [
-    ("trench", "Trench en cachemire", "trench-cachemire.jpg"),
-    ("blazer", "Blazer croisé en laine", "blazer-laine.jpg"),
-    ("robe", "Robe de soirée en soie", "robe-soie.jpg"),
-    ("caftan", "Caftan brodé main", "caftan-brode.jpg"),
-    ("sac-main", "Sac à main cuir grainé", "sac-main-cuir.jpg"),
-    ("cabas", "Cabas en cuir camel", "cabas-camel.jpg"),
-    ("pochette", "Pochette de soirée satin", "pochette-satin.jpg"),
-    ("sac-dos", "Sac à dos cuir nappa", "sac-dos-nappa.jpg"),
-    ("montre-acier", "Montre automatique acier", "montre-acier.jpg"),
-    ("chrono", "Chronographe or rose", "chronographe-or.jpg"),
-    ("squelette", "Montre squelette cuir", "montre-squelette.jpg"),
-    ("nacre", "Montre femme nacre", "montre-nacre.jpg"),
+    ("manteau", "Manteau long en laine ivoire", "manteau-laine-ivoire.jpg"),
+    ("caftan-bleu", "Caftan satin bleu canard", "caftan-bleu-canard.jpg"),
+    ("caftan-perle", "Caftan satin perle", "caftan-perle.jpg"),
+    ("caftan-prune", "Caftan satin prune", "caftan-prune.jpg"),
+    ("robe", "Robe longue satin cacao", "robe-satin-cacao.jpg"),
+    ("blazer-croise", "Blazer croisé boutons dorés", "blazer-croise-ivoire.jpg"),
+    ("blazer-oversize", "Blazer oversize chocolat", "blazer-oversize-chocolat.jpg"),
+    ("pull", "Pull maille bordeaux", "pull-maille-bordeaux.jpg"),
+    ("blouse-beige", "Blouse lavallière satin beige", "blouse-lavalliere-beige.jpg"),
+    ("blouse-bordeaux", "Blouse lavallière mousseline bordeaux", "blouse-lavalliere-bordeaux.jpg"),
+    ("cabas-marron", "Cabas cuir marron et twilly", "cabas-cuir-marron.jpg"),
+    ("cabas-bordeaux", "Cabas bordeaux fermoir doré", "cabas-bordeaux.jpg"),
+    ("sac-main", "Sac à main cuir grainé chocolat", "sac-main-chocolat.jpg"),
+    ("trapeze", "Sac trapèze cuir camel", "sac-trapeze-camel.jpg"),
+    ("mini-sac", "Mini sac bordeaux", "mini-sac-bordeaux.jpg"),
+    ("joailliere", "Montre joaillière sertie", "montre-joailliere-serpent.jpg"),
+    ("bicolore", "Coffret montre bicolore et jonc", "montre-bicolore-jonc.jpg"),
+    ("octogonale", "Montre octogonale dorée", "montre-octogonale-doree.jpg"),
+    ("ovale", "Montre ovale dorée", "montre-ovale-doree.jpg"),
 ]
+
 
 files = glob.glob(os.path.join(DL, "*.jpg"))
 db = SessionLocal()

@@ -1,35 +1,55 @@
-// Vitrine web publique — design éditorial boutique de luxe, recherche/filtres, fiche produit,
-// animations, panier, comptes, commande en ligne, bilingue FR/Darija.
+// Vitrine web publique — direction artistique éditoriale (noir / blanc / photo plein cadre),
+// recherche/filtres, fiche produit, panier, comptes, commande en ligne, trilingue FR/AR/EN.
 import React, { useEffect, useRef, useState } from 'react'
 import { authHeader, getCompte, lirePanier, ecrirePanier } from './clientApi.js'
 import { AuthModal, ComptePanel } from './Compte.jsx'
 import { ContactFlottant, TELEGRAM_BOT } from './Contact.jsx'
 import { CODES, LANGUES, LangContext, dirOf, makeT, tc, useT } from './i18n.js'
 
-const OR = '#b4914f'      // or champagne — accents, prix, boutons
-const NOIR = '#141210'    // noir profond — barre supérieure, pieds
-const ENCRE = '#262220'   // encre chaude — bandeau horlogerie
+const ENCRE = '#0b0b0b'   // noir d'encre — texte, boutons, pied de page
+const CRAIE = '#f4f2ef'   // blanc cassé — fonds d'image et sections alternées
+const LIGNE = '#e3e1dd'   // filets de séparation (1 px)
+const GRIS = '#8d8a85'    // texte secondaire
 const L = window.L
 const CASA = [33.5731, -7.6298] // centre Casablanca (carte de checkout)
 const SEUIL_STOCK = 5           // en dessous : badge « plus que X »
 
+// Petites icônes au trait (pas d'emoji : la DA reste monochrome).
+function Icone({ nom, taille = 17 }) {
+  const traces = {
+    recherche: <><circle cx="11" cy="11" r="7" /><path d="m20 20-3.6-3.6" /></>,
+    compte: <><path d="M20 21v-1.8a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4V21" /><circle cx="12" cy="7" r="4" /></>,
+    panier: <><path d="M6 2 4 6v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6l-2-4Z" /><path d="M4 6h16" /><path d="M16 10a4 4 0 0 1-8 0" /></>,
+    fleche: <><path d="M4 12h15" /><path d="m13 6 6 6-6 6" /></>,
+    gauche: <path d="m14 6-6 6 6 6" />,
+    droite: <path d="m10 6 6 6-6 6" />,
+    haut: <><path d="M12 19V5" /><path d="m5 12 7-7 7 7" /></>,
+  }
+  return (
+    <svg width={taille} height={taille} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {traces[nom]}
+    </svg>
+  )
+}
+
 function Tg({ children, className = '', style }) {
   return (
     <a href={TELEGRAM_BOT} target="_blank" rel="noreferrer" style={style}
-       className={`inline-flex items-center justify-center gap-2 transition-all hover:opacity-90 ${className}`}>
+       className={`inline-flex items-center justify-center gap-2 transition-colors ${className}`}>
       {children}
     </a>
   )
 }
 
-function Ornement({ color = OR }) {
-  return (
-    <div className="flex items-center justify-center gap-3 my-4">
-      <span className="h-px w-10" style={{ background: color }} />
-      <span className="rotate-45 w-1.5 h-1.5" style={{ background: color }} />
-      <span className="h-px w-10" style={{ background: color }} />
-    </div>
-  )
+// Surtitre minuscule très espacé — la signature typographique de la vitrine.
+function Surtitre({ children, className = '', style }) {
+  return <p style={style} className={`text-[10px] tracking-[0.32em] uppercase ${className}`}>{children}</p>
+}
+
+// Titre de section : capitales larges, graisse légère.
+function Titre({ children, className = '', taille = 'text-3xl md:text-[42px]' }) {
+  return <h2 className={`${taille} font-light tracking-[0.14em] uppercase leading-tight ${className}`}>{children}</h2>
 }
 
 // Apparition en fondu au défilement (respecte prefers-reduced-motion).
@@ -52,7 +72,7 @@ function Reveal({ children, className = '', delay = 0, tag: Tag = 'div' }) {
   }, [vu])
   return (
     <Tag ref={ref} style={{ transitionDelay: `${delay}ms` }}
-         className={`transition-all duration-700 ease-out ${vu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} ${className}`}>
+         className={`transition-all duration-700 ease-out ${vu ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'} ${className}`}>
       {children}
     </Tag>
   )
@@ -61,9 +81,9 @@ function Reveal({ children, className = '', delay = 0, tag: Tag = 'div' }) {
 function BadgeStock({ p }) {
   const { t } = useT()
   if (p.stock <= 0)
-    return <span className="absolute top-2 left-2 bg-stone-800/80 text-white text-[10px] tracking-wider uppercase px-2 py-1 rounded-full">{t('epuise')}</span>
+    return <span className="absolute top-3 left-3 bg-black text-white text-[9px] tracking-[0.25em] uppercase px-2.5 py-1">{t('epuise')}</span>
   if (p.stock <= SEUIL_STOCK)
-    return <span className="absolute top-2 left-2 text-white text-[10px] font-semibold tracking-wide px-2 py-1 rounded-full animate-pulse" style={{ background: '#c0473b' }}>{t('plus_que', { n: p.stock })}</span>
+    return <span className="absolute top-3 left-3 bg-white text-black text-[9px] tracking-[0.25em] uppercase px-2.5 py-1">{t('plus_que', { n: p.stock })}</span>
   return null
 }
 
@@ -71,34 +91,32 @@ function CarteProduit({ p, onAdd, onOpen }) {
   const { t, lang } = useT()
   const epuise = p.stock <= 0
   return (
-    <div className="group text-center">
-      <button onClick={() => onOpen(p)} className="block w-full text-left relative bg-white shadow-sm overflow-hidden rounded-sm">
-        <div className="aspect-square overflow-hidden bg-[#eceae6] relative">
+    <div className="group flex flex-col border-r border-b" style={{ borderColor: LIGNE }}>
+      <button onClick={() => onOpen(p)} className="relative block w-full overflow-hidden" style={{ background: CRAIE }}>
+        <div className="aspect-[4/5] overflow-hidden">
           {p.image_url
             ? <img src={p.image_url} alt={p.nom} loading="lazy"
-                   className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${epuise ? 'grayscale opacity-60' : ''}`} />
-            : <div className="w-full h-full flex items-center justify-center text-5xl">👜</div>}
-          <BadgeStock p={p} />
-          {p.best_seller && (
-            <span className="absolute top-2 right-2 text-white text-[10px] font-semibold tracking-wide px-2 py-1 rounded-full shadow-sm" style={{ background: OR }}>🔥 {t('best_seller')}</span>
-          )}
-          <span className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
-            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-[11px] tracking-[0.2em] uppercase border border-white/80 px-4 py-2">
-              {t('voir')}
-            </span>
-          </span>
+                   className={`w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] ${epuise ? 'grayscale opacity-60' : ''}`} />
+            : <div className="w-full h-full" style={{ background: CRAIE }} />}
         </div>
+        <BadgeStock p={p} />
+        {p.best_seller && (
+          <span className="absolute top-3 right-3 bg-black text-white text-[9px] tracking-[0.25em] uppercase px-2.5 py-1">{t('best_seller')}</span>
+        )}
       </button>
-      <h3 className="mt-4 text-sm font-semibold tracking-[0.15em] uppercase text-stone-800">{tc(lang, 'produit', p.nom)}</h3>
-      <p className="font-cormorant italic text-stone-400">{tc(lang, 'categorie', p.categorie)}</p>
-      <p className="mt-1 font-serif-display text-lg" style={{ color: OR }}>
-        {epuise ? <span className="text-stone-400 text-base">{t('epuise')}</span> : `${p.prix} DH`}
-      </p>
-      {!epuise && (
-        <button onClick={() => onAdd(p)}
-                className="mt-2 text-[11px] tracking-[0.2em] uppercase font-semibold text-white px-4 py-1.5 hover:brightness-110 active:scale-95 transition"
-                style={{ background: OR }}>{t('ajouter')}</button>
-      )}
+      <div className="px-4 sm:px-5 py-5 flex flex-col gap-1.5" style={{ textAlign: 'start' }}>
+        <span className="block h-px w-10" style={{ background: ENCRE }} />
+        <h3 className="mt-2 text-[11px] tracking-[0.2em] uppercase leading-relaxed">{tc(lang, 'produit', p.nom)}</h3>
+        <p className="text-[11px] tracking-[0.12em] uppercase" style={{ color: GRIS }}>
+          {epuise ? t('epuise') : `${p.prix} DH`}
+        </p>
+        {!epuise && (
+          <button onClick={() => onAdd(p)}
+                  className="mt-2 self-start text-[10px] tracking-[0.28em] uppercase border-b border-transparent hover:border-black transition-colors">
+            {t('ajouter')}
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -114,40 +132,36 @@ function FicheProduit({ p, onAdd, onClose }) {
     return () => window.removeEventListener('keydown', onEsc)
   }, [onClose])
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="bg-white w-full sm:max-w-3xl sm:rounded-2xl max-h-[92vh] overflow-y-auto grid md:grid-cols-2 animate-[fadeIn_.25s_ease]" onClick={e => e.stopPropagation()}>
-        <div className="relative aspect-square md:aspect-auto bg-[#eceae6]">
-          {p.image_url
-            ? <img src={p.image_url} alt={p.nom} className="w-full h-full object-cover" />
-            : <div className="w-full h-full flex items-center justify-center text-7xl">👜</div>}
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
+      <div className="bg-white w-full sm:max-w-4xl max-h-[92vh] overflow-y-auto grid md:grid-cols-2 animate-[fadeIn_.25s_ease]" onClick={e => e.stopPropagation()}>
+        <div className="relative aspect-[4/5] md:aspect-auto" style={{ background: CRAIE }}>
+          {p.image_url && <img src={p.image_url} alt={p.nom} className="w-full h-full object-cover" />}
           <BadgeStock p={p} />
-          {p.best_seller && (
-            <span className="absolute top-2 right-2 text-white text-[10px] font-semibold tracking-wide px-2 py-1 rounded-full shadow-sm" style={{ background: OR }}>🔥 {t('best_seller')}</span>
-          )}
         </div>
-        <div className="p-7 flex flex-col">
-          <button onClick={onClose} className="self-end text-stone-400 text-2xl leading-none hover:text-stone-700">×</button>
-          <p className="font-cormorant italic text-stone-400">{tc(lang, 'categorie', p.categorie)}</p>
-          <h2 className="font-serif-display text-3xl text-stone-800 mt-1">{tc(lang, 'produit', p.nom)}</h2>
-          <p className="mt-2 font-serif-display text-2xl" style={{ color: OR }}>{p.prix} DH</p>
-          {p.description && <p className="mt-4 text-stone-500 leading-relaxed text-sm">{tc(lang, 'description', p.description)}</p>}
-          <div className="mt-auto pt-6">
+        <div className="p-8 sm:p-10 flex flex-col" style={{ textAlign: 'start' }}>
+          <button onClick={onClose} className="self-end text-xl leading-none hover:opacity-50" style={{ color: GRIS }}>×</button>
+          <Surtitre style={{ color: GRIS }} className="mt-2" >{tc(lang, 'categorie', p.categorie)}</Surtitre>
+          <Titre taille="text-2xl md:text-3xl" className="mt-4">{tc(lang, 'produit', p.nom)}</Titre>
+          <p className="mt-4 text-sm tracking-[0.18em] uppercase">{p.prix} DH</p>
+          {p.description && (
+            <p className="mt-6 text-sm leading-loose" style={{ color: GRIS }}>{tc(lang, 'description', p.description)}</p>
+          )}
+          <div className="mt-auto pt-10">
             {epuise ? (
-              <p className="text-center text-stone-400 border border-stone-200 rounded-xl py-3">{t('epuise')}</p>
+              <p className="text-center text-[11px] tracking-[0.25em] uppercase border py-4" style={{ borderColor: LIGNE, color: GRIS }}>{t('epuise')}</p>
             ) : (
               <>
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="text-xs uppercase tracking-wider text-stone-500">{t('fiche_quantite')}</span>
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => setQty(q => Math.max(1, q - 1))} className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200">−</button>
-                    <span className="w-6 text-center font-medium">{qty}</span>
-                    <button onClick={() => setQty(q => Math.min(p.stock, q + 1))} className="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200">+</button>
+                <div className="flex items-center justify-between border-y py-4 mb-6" style={{ borderColor: LIGNE }}>
+                  <Surtitre style={{ color: GRIS }}>{t('fiche_quantite')}</Surtitre>
+                  <div className="flex items-center gap-5 text-sm">
+                    <button onClick={() => setQty(q => Math.max(1, q - 1))} className="hover:opacity-50">−</button>
+                    <span className="w-5 text-center">{qty}</span>
+                    <button onClick={() => setQty(q => Math.min(p.stock, q + 1))} className="hover:opacity-50">+</button>
                   </div>
                 </div>
                 <button onClick={() => { onAdd(p, qty); onClose() }}
-                        className="w-full text-white font-semibold py-3 rounded-xl tracking-wide hover:brightness-110 active:scale-[.98] transition"
-                        style={{ background: OR }}>
-                  {t('fiche_ajouter')} · {p.prix * qty} DH
+                        className="w-full bg-black text-white text-[10px] tracking-[0.3em] uppercase py-4 hover:opacity-85 transition-opacity">
+                  {t('fiche_ajouter')} — {p.prix * qty} DH
                 </button>
               </>
             )}
@@ -158,57 +172,102 @@ function FicheProduit({ p, onAdd, onClose }) {
   )
 }
 
-function CarteVisuel({ image, titre, texte, onClick }) {
+// Fond du hero : boucle vidéo muette (16:9) avec repli sur la photo
+// si le mouvement est désactivé par le système ou si la vidéo ne charge pas.
+function FondHero({ video, image }) {
+  const [fige, setFige] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false)
+  if (fige || !video) {
+    return <img src={image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+  }
   return (
-    <button onClick={onClick} className="group text-center block w-full cursor-pointer">
-      <div className="overflow-hidden shadow-sm rounded-sm">
-        <div className="h-56 bg-[#eceae6] overflow-hidden">
-          {image
-            ? <img src={image} alt={titre} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-            : <div className="w-full h-full flex items-center justify-center text-5xl">👜</div>}
-        </div>
-      </div>
-      <h3 className="mt-5 text-base font-semibold tracking-[0.18em] uppercase text-stone-800 group-hover:text-[#b4914f] transition-colors">{titre}</h3>
-      <p className="font-cormorant italic text-stone-500 mt-1 px-4">{texte}</p>
-    </button>
+    <video src={video} poster={image} autoPlay muted loop playsInline preload="auto"
+           onError={() => setFige(true)} aria-hidden="true"
+           className="absolute inset-0 w-full h-full object-cover" />
   )
 }
 
-function Banniere({ image, surtitre, titre, texte, cta, droite, sombre }) {
+// Bandeau d'annonces défilantes, tout en haut de la page.
+function Annonce({ commerce }) {
+  const { t } = useT()
+  const msgs = [t('annonce_1'), commerce.horaires, commerce.telephone].filter(Boolean)
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    if (msgs.length < 2) return
+    const id = setInterval(() => setI(x => (x + 1) % msgs.length), 5000)
+    return () => clearInterval(id)
+  }, [msgs.length])
+  const bouger = (d) => setI(x => (x + d + msgs.length) % msgs.length)
   return (
-    <div className="grid md:grid-cols-2 overflow-hidden shadow-sm bg-white rounded-sm">
-      <div className={`h-64 md:h-auto md:min-h-[320px] bg-[#eceae6] overflow-hidden ${droite ? 'md:order-2' : ''}`}>
-        {image && <img src={image} alt={titre} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />}
-      </div>
-      <div className="flex flex-col items-center justify-center text-center p-10" style={sombre ? { background: ENCRE } : {}}>
-        {surtitre && <p className="font-script text-3xl" style={{ color: sombre ? '#fff' : OR }}>{surtitre}</p>}
-        <h3 className={`font-serif-display text-3xl mt-1 ${sombre ? 'text-white' : 'text-stone-800'}`}>{titre}</h3>
-        <Ornement color={sombre ? '#ffffff' : OR} />
-        <p className={`font-cormorant italic max-w-sm text-lg ${sombre ? 'text-white/90' : 'text-stone-500'}`}>{texte}</p>
-        <Tg className={`mt-6 text-xs tracking-[0.2em] uppercase font-semibold px-8 py-3 hover:brightness-110 ${sombre ? 'bg-white' : 'text-white'}`}
-            style={sombre ? { color: NOIR } : { background: OR }}>{cta}</Tg>
+    <div className="bg-white border-b" style={{ borderColor: LIGNE }}>
+      <div className="max-w-[1400px] mx-auto px-4 h-9 flex items-center justify-center gap-6">
+        <button onClick={() => bouger(-1)} aria-label="‹" className="opacity-40 hover:opacity-100 transition-opacity"><Icone nom="gauche" taille={14} /></button>
+        <Surtitre className="truncate">{msgs[i]}</Surtitre>
+        <button onClick={() => bouger(1)} aria-label="›" className="opacity-40 hover:opacity-100 transition-opacity"><Icone nom="droite" taille={14} /></button>
       </div>
     </div>
   )
 }
 
-// Bande de réassurance (arguments de confiance).
+// Catégorie en pleine largeur (bande de 3), label centré sur la photo.
+function TuileCategorie({ image, titre, onClick }) {
+  const { t } = useT()
+  return (
+    <button onClick={onClick} className="group relative block w-full h-[46vh] min-h-[260px] overflow-hidden" style={{ background: CRAIE }}>
+      {image && <img src={image} alt={titre} loading="lazy"
+                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-105" />}
+      <span className="absolute inset-0 bg-black/25 group-hover:bg-black/35 transition-colors" />
+      <span className="relative flex flex-col items-center justify-center h-full text-white gap-3">
+        <span className="text-lg sm:text-xl font-light tracking-[0.3em] uppercase">{titre}</span>
+        <span className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase opacity-90">
+          {t('voir_cat')} <Icone nom="fleche" taille={13} />
+        </span>
+      </span>
+    </button>
+  )
+}
+
+// Bande éditoriale plein cadre : photo + bloc de texte aligné au début de ligne.
+function Edito({ image, numero, titre, texte, cta }) {
+  return (
+    <section className="relative h-[70vh] min-h-[380px] overflow-hidden" style={{ background: CRAIE }}>
+      {image && <img src={image} alt={titre} className="absolute inset-0 w-full h-full object-cover" />}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
+      <div className="relative h-full max-w-[1400px] mx-auto px-6 sm:px-10 flex items-center">
+        <div className="max-w-md text-white" style={{ textAlign: 'start' }}>
+          <Surtitre className="opacity-80">{numero}</Surtitre>
+          <Titre className="mt-4">{titre}</Titre>
+          <p className="mt-5 text-sm leading-loose text-white/85">{texte}</p>
+          <Tg className="mt-8 border border-white/80 px-10 py-3.5 text-[10px] tracking-[0.3em] uppercase hover:bg-white hover:text-black">
+            {cta}
+          </Tg>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Bande de réassurance, numérotée 01 → 04.
 function BandeConfiance() {
   const { t } = useT()
   const items = [
-    ['💳', t('trust_paiement_t'), t('trust_paiement_s')],
-    ['💎', t('trust_maison_t'), t('trust_maison_s')],
-    ['🛵', t('trust_livr_t'), t('trust_livr_s')],
-    ['💬', t('trust_support_t'), t('trust_support_s')],
+    [t('trust_paiement_t'), t('trust_paiement_s')],
+    [t('trust_maison_t'), t('trust_maison_s')],
+    [t('trust_livr_t'), t('trust_livr_s')],
+    [t('trust_support_t'), t('trust_support_s')],
   ]
   return (
-    <section className="bg-white border-y border-stone-200/70">
-      <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
-        {items.map(([ico, titre, sous], i) => (
-          <Reveal key={titre} delay={i * 80} className="text-center">
-            <div className="text-3xl">{ico}</div>
-            <h4 className="mt-3 text-sm font-semibold tracking-wider uppercase text-stone-800">{titre}</h4>
-            <p className="mt-1 text-sm text-stone-500 font-cormorant italic">{sous}</p>
+    <section className="border-y" style={{ borderColor: LIGNE }}>
+      <div className="max-w-[1400px] mx-auto grid grid-cols-2 lg:grid-cols-4">
+        {items.map(([titre, sous], i) => (
+          <Reveal key={titre} delay={i * 70}
+                  className="px-6 sm:px-8 py-12 border-r last:border-r-0" >
+            <div style={{ textAlign: 'start' }}>
+              <Surtitre style={{ color: GRIS }}>{String(i + 1).padStart(2, '0')}</Surtitre>
+              <h4 className="mt-4 text-[11px] tracking-[0.22em] uppercase">{titre}</h4>
+              <p className="mt-2 text-xs leading-loose" style={{ color: GRIS }}>{sous}</p>
+            </div>
           </Reveal>
         ))}
       </div>
@@ -221,20 +280,17 @@ function BandeAvis() {
   const { t } = useT()
   const avis = [['Sara B.', t('avis_1')], ['Youssef M.', t('avis_2')], ['Amina K.', t('avis_3')]]
   return (
-    <section className="max-w-6xl mx-auto px-4 py-16">
-      <p className="text-center font-script text-3xl" style={{ color: OR }}>{t('avis_sur')}</p>
-      <h3 className="text-center font-serif-display text-3xl text-stone-800 mt-1">{t('avis_titre')}</h3>
-      <Ornement />
-      <div className="grid md:grid-cols-3 gap-6 mt-6">
+    <section className="max-w-[1400px] mx-auto px-6 sm:px-10 py-24">
+      <div style={{ textAlign: 'start' }}>
+        <Surtitre style={{ color: GRIS }}>{t('avis_sur')}</Surtitre>
+        <Titre className="mt-4">{t('avis_titre')}</Titre>
+      </div>
+      <div className="grid md:grid-cols-3 gap-px mt-14" style={{ background: LIGNE }}>
         {avis.map(([nom, txt], i) => (
-          <Reveal key={nom} delay={i * 90}>
-            <div className="bg-white rounded-sm shadow-sm p-8 h-full flex flex-col">
-              <div className="text-base tracking-widest" style={{ color: OR }}>★★★★★</div>
-              <p className="mt-3 font-cormorant italic text-lg text-stone-600 leading-relaxed flex-1">« {txt} »</p>
-              <div className="mt-5 flex items-center gap-3">
-                <span className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shrink-0" style={{ background: ENCRE }}>{nom[0]}</span>
-                <span className="text-sm font-semibold tracking-wide text-stone-700">{nom}</span>
-              </div>
+          <Reveal key={nom} delay={i * 80} className="bg-white">
+            <div className="p-8 sm:p-10 h-full flex flex-col" style={{ textAlign: 'start' }}>
+              <p className="text-sm leading-loose flex-1" style={{ color: GRIS }}>« {txt} »</p>
+              <Surtitre className="mt-8">{nom}</Surtitre>
             </div>
           </Reveal>
         ))}
@@ -248,27 +304,28 @@ function BarreFiltres({ q, setQ, cat, setCat, sort, setSort, categories }) {
   const { t, lang } = useT()
   const chip = (val, label) => (
     <button key={val} onClick={() => setCat(val)}
-            className={`px-4 py-1.5 rounded-full text-[11px] tracking-[0.15em] uppercase transition ${cat === val ? 'text-white' : 'bg-white text-stone-500 border border-stone-200 hover:border-stone-400'}`}
-            style={cat === val ? { background: OR } : {}}>{label}</button>
+            className={`px-5 py-2 text-[10px] tracking-[0.25em] uppercase border transition-colors ${cat === val ? 'bg-black text-white border-black' : 'bg-white hover:border-black'}`}
+            style={cat === val ? {} : { borderColor: LIGNE }}>{label}</button>
   )
   return (
-    <div className="flex flex-col gap-4 mb-10">
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-        <div className="relative flex-1">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400">🔍</span>
+    <div className="flex flex-col lg:flex-row lg:items-end gap-6 mb-12">
+      <div className="flex flex-wrap gap-2 flex-1">
+        {chip('all', t('tous'))}
+        {categories.map(c => chip(c, tc(lang, 'categorie', c)))}
+      </div>
+      <div className="flex items-end gap-6">
+        <label className="flex items-center gap-2 border-b pb-2 min-w-[180px]" style={{ borderColor: LIGNE }}>
+          <Icone nom="recherche" taille={15} />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={t('rechercher_ph')}
-                 className="w-full pl-9 pr-3 py-2.5 rounded-full border border-stone-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#b4914f]/40" />
-        </div>
+                 className="w-full bg-transparent text-[11px] tracking-[0.12em] uppercase focus:outline-none placeholder:normal-case placeholder:tracking-normal" />
+        </label>
         <select value={sort} onChange={e => setSort(e.target.value)}
-                className="py-2.5 px-3 rounded-full border border-stone-200 bg-white text-sm text-stone-600 focus:outline-none">
-          <option value="reco">{t('trier')} · {t('tri_reco')}</option>
+                className="bg-transparent border-b pb-2 text-[10px] tracking-[0.2em] uppercase focus:outline-none cursor-pointer"
+                style={{ borderColor: LIGNE }}>
+          <option value="reco">{t('tri_reco')}</option>
           <option value="asc">{t('tri_prix_asc')}</option>
           <option value="desc">{t('tri_prix_desc')}</option>
         </select>
-      </div>
-      <div className="flex flex-wrap justify-center gap-2">
-        {chip('all', t('tous'))}
-        {categories.map(c => chip(c, tc(lang, 'categorie', c)))}
       </div>
     </div>
   )
@@ -289,7 +346,7 @@ function MiniCarte({ onPick }) {
     })
     setTimeout(() => map.current.invalidateSize(), 100)
   }, [])
-  return <div ref={div} style={{ height: 200 }} className="rounded-lg overflow-hidden border border-stone-200" />
+  return <div ref={div} style={{ height: 200, borderColor: LIGNE }} className="overflow-hidden border" />
 }
 
 function Checkout({ panier, setPanier, onClose, compte }) {
@@ -305,6 +362,8 @@ function Checkout({ panier, setPanier, onClose, compte }) {
   const total = panier.reduce((s, i) => s + i.prix * i.qty, 0)
   const setQty = (id, d) => setPanier(p => p.map(i => i.id === id ? { ...i, qty: Math.max(1, i.qty + d) } : i))
   const retirer = (id) => setPanier(p => p.filter(i => i.id !== id))
+
+  const champ = 'w-full bg-transparent border-b pb-2 text-sm focus:outline-none focus:border-black transition-colors'
 
   const valider = async () => {
     setErreur('')
@@ -327,73 +386,69 @@ function Checkout({ panier, setPanier, onClose, compte }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-serif-display text-2xl">{t('checkout_titre')}</h2>
-            <button onClick={onClose} className="text-stone-400 text-2xl leading-none hover:text-stone-700">×</button>
+    <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
+      <div className="bg-white w-full sm:max-w-lg max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()} style={{ textAlign: 'start' }}>
+        <div className="p-8">
+          <div className="flex items-center justify-between mb-8">
+            <Surtitre>{t('checkout_titre')}</Surtitre>
+            <button onClick={onClose} className="text-xl leading-none hover:opacity-50" style={{ color: GRIS }}>×</button>
           </div>
 
           {panier.length === 0 ? (
-            <p className="text-stone-500 py-8 text-center">{t('checkout_vide')}</p>
+            <p className="py-10 text-center text-[11px] tracking-[0.2em] uppercase" style={{ color: GRIS }}>{t('checkout_vide')}</p>
           ) : (
             <>
-              <div className="space-y-2 mb-4">
+              <div className="border-t" style={{ borderColor: LIGNE }}>
                 {panier.map(i => (
-                  <div key={i.id} className="flex items-center gap-3 text-sm">
-                    <span className="flex-1">{tc(lang, 'produit', i.nom)}</span>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => setQty(i.id, -1)} className="w-6 h-6 rounded-full bg-stone-100 hover:bg-stone-200">−</button>
-                      <span className="w-5 text-center">{i.qty}</span>
-                      <button onClick={() => setQty(i.id, +1)} className="w-6 h-6 rounded-full bg-stone-100 hover:bg-stone-200">+</button>
+                  <div key={i.id} className="flex items-center gap-3 text-xs py-4 border-b" style={{ borderColor: LIGNE }}>
+                    <span className="flex-1 tracking-[0.12em] uppercase">{tc(lang, 'produit', i.nom)}</span>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setQty(i.id, -1)} className="hover:opacity-50">−</button>
+                      <span className="w-4 text-center">{i.qty}</span>
+                      <button onClick={() => setQty(i.id, +1)} className="hover:opacity-50">+</button>
                     </div>
-                    <span className="w-16 text-right font-medium">{i.prix * i.qty} DH</span>
-                    <button onClick={() => retirer(i.id)} className="text-stone-300 hover:text-red-500">🗑</button>
+                    <span className="w-20 text-right">{i.prix * i.qty} DH</span>
+                    <button onClick={() => retirer(i.id)} className="hover:opacity-50" style={{ color: GRIS }}>×</button>
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between font-semibold border-t border-stone-100 pt-2 mb-5">
-                <span>{t('checkout_total')}</span><span style={{ color: OR }}>{total} DH</span>
+              <div className="flex justify-between py-5 text-[11px] tracking-[0.2em] uppercase">
+                <span>{t('checkout_total')}</span><span>{total} DH</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="grid grid-cols-2 gap-px mb-8" style={{ background: LIGNE }}>
                 {[['retrait', t('mode_retrait_t'), t('mode_retrait_s')], ['livraison', t('mode_livr_t'), t('mode_livr_s')]].map(([v, ti, s]) => (
                   <button key={v} onClick={() => setMode(v)}
-                          className={`rounded-xl border-2 p-3 text-left transition ${mode === v ? 'border-transparent text-white' : 'border-stone-200 bg-white hover:border-stone-300'}`}
-                          style={mode === v ? { background: OR } : {}}>
-                    <div className="font-semibold text-sm">{ti}</div>
-                    <div className={`text-xs ${mode === v ? 'text-white/80' : 'text-stone-400'}`}>{s}</div>
+                          className={`p-4 transition-colors ${mode === v ? 'bg-black text-white' : 'bg-white hover:bg-stone-50'}`}
+                          style={{ textAlign: 'start' }}>
+                    <div className="text-[10px] tracking-[0.22em] uppercase">{ti}</div>
+                    <div className={`text-[11px] mt-1 ${mode === v ? 'text-white/70' : ''}`} style={mode === v ? {} : { color: GRIS }}>{s}</div>
                   </button>
                 ))}
               </div>
 
-              <div className="space-y-3">
-                <input value={nom} onChange={e => setNom(e.target.value)} placeholder={t('ph_nom')}
-                       className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b4914f]/40" />
-                <input value={tel} onChange={e => setTel(e.target.value)} placeholder={t('ph_tel')}
-                       className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b4914f]/40" />
+              <div className="space-y-6">
+                <input value={nom} onChange={e => setNom(e.target.value)} placeholder={t('ph_nom')} className={champ} style={{ borderColor: LIGNE }} />
+                <input value={tel} onChange={e => setTel(e.target.value)} placeholder={t('ph_tel')} className={champ} style={{ borderColor: LIGNE }} />
                 {mode === 'livraison' && (
                   <>
-                    <input value={adresse} onChange={e => setAdresse(e.target.value)} placeholder={t('ph_adresse')}
-                           className="w-full border rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b4914f]/40" />
+                    <input value={adresse} onChange={e => setAdresse(e.target.value)} placeholder={t('ph_adresse')} className={champ} style={{ borderColor: LIGNE }} />
                     <div>
-                      <p className="text-xs text-stone-400 mb-1">{t('carte_hint')}</p>
+                      <p className="text-[10px] tracking-[0.18em] uppercase mb-3" style={{ color: GRIS }}>{t('carte_hint')}</p>
                       <MiniCarte onPick={(lat, lng) => setPin([lat, lng])} />
-                      {pin && <p className="text-xs text-emerald-600 mt-1">{t('pos_ok')}</p>}
+                      {pin && <p className="text-[10px] tracking-[0.18em] uppercase mt-2">{t('pos_ok')}</p>}
                     </div>
                   </>
                 )}
               </div>
 
-              {erreur && <p className="text-red-600 text-sm mt-3">{erreur}</p>}
+              {erreur && <p className="text-red-600 text-xs mt-5">{erreur}</p>}
 
               <button onClick={valider} disabled={envoi}
-                      className="w-full mt-5 text-white font-semibold py-3 rounded-xl tracking-wide disabled:opacity-60 hover:brightness-110 active:scale-[.98] transition"
-                      style={{ background: OR }}>
-                {envoi ? t('envoi') : `${t('valider')} · ${total} DH`}
+                      className="w-full mt-8 bg-black text-white text-[10px] tracking-[0.3em] uppercase py-4 disabled:opacity-50 hover:opacity-85 transition-opacity">
+                {envoi ? t('envoi') : `${t('valider')} — ${total} DH`}
               </button>
-              <p className="text-center text-xs text-stone-400 mt-3">
+              <p className="text-center text-[10px] tracking-[0.15em] uppercase mt-5" style={{ color: GRIS }}>
                 {t('ou_1')}<a href={TELEGRAM_BOT} target="_blank" rel="noreferrer" className="underline">{t('ou_lien')}</a>
               </p>
             </>
@@ -404,16 +459,45 @@ function Checkout({ panier, setPanier, onClose, compte }) {
   )
 }
 
-// Sélecteur de langue (FR / Darija).
-function SelecteurLangue() {
+// Sélecteur de langue (FR / العربية / EN).
+function SelecteurLangue({ clair }) {
   const { lang, setLang } = useT()
   return (
-    <div className="flex items-center rounded-full border border-stone-200 overflow-hidden text-[10px] font-semibold">
+    <div className="flex items-center gap-2.5 text-[10px] tracking-[0.2em] uppercase">
       {LANGUES.map(l => (
         <button key={l.code} onClick={() => setLang(l.code)}
-                className={`px-2 py-1 transition ${lang === l.code ? 'text-white' : 'text-stone-500 hover:text-stone-800'}`}
-                style={lang === l.code ? { background: OR } : {}}>{l.label}</button>
+                className={`transition-opacity ${lang === l.code ? 'opacity-100 underline underline-offset-4' : 'opacity-50 hover:opacity-100'}`}>
+          {l.label}
+        </button>
       ))}
+    </div>
+  )
+}
+
+// Barre de navigation : transparente sur le héros, blanche une fois la page défilée.
+function Nav({ commerce, clair, nbPanier, compte, onCompte, onPanier, onRecherche }) {
+  const { t } = useT()
+  const lien = 'text-[10px] tracking-[0.25em] uppercase hover:opacity-60 transition-opacity'
+  return (
+    <div className={`w-full ${clair ? 'text-white' : 'text-black bg-white border-b'}`} style={clair ? {} : { borderColor: LIGNE }}>
+      <div className="max-w-[1400px] mx-auto px-6 sm:px-10 h-16 flex items-center gap-4">
+        <nav className="flex-1 flex items-center gap-6">
+          <a href="#carte" className={`${lien} hidden sm:inline`}>{t('nav_carte')}</a>
+          <a href="#offre" className={`${lien} hidden md:inline`}>{t('nav_offres')}</a>
+        </nav>
+        <a href="/" className="text-sm sm:text-base font-light tracking-[0.42em] uppercase whitespace-nowrap">
+          {commerce.nom}
+        </a>
+        <div className="flex-1 flex items-center justify-end gap-5">
+          <div className="hidden sm:block"><SelecteurLangue clair={clair} /></div>
+          <button onClick={onRecherche} aria-label={t('rechercher_ph')} className="hover:opacity-60 transition-opacity"><Icone nom="recherche" /></button>
+          <button onClick={onCompte} aria-label={t('connexion')} className="hover:opacity-60 transition-opacity"><Icone nom="compte" /></button>
+          <button onClick={onPanier} aria-label={t('panier')} className="relative hover:opacity-60 transition-opacity">
+            <Icone nom="panier" />
+            {nbPanier > 0 && <span className="absolute -top-2 -right-2 text-[9px] tracking-normal">{nbPanier}</span>}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -426,14 +510,16 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
   const [fiche, setFiche] = useState(null)
   const [toast, setToast] = useState(null)
   const [showTop, setShowTop] = useState(false)
+  const [colle, setColle] = useState(false)
   const [q, setQ] = useState('')
   const [cat, setCat] = useState('all')
   const [sort, setSort] = useState('reco')
   const toastTimer = useRef(null)
+  const rechercheRef = useRef(null)
 
   useEffect(() => { ecrirePanier(panier) }, [panier])
   useEffect(() => {
-    const onScroll = () => setShowTop(window.scrollY > 600)
+    const onScroll = () => { setShowTop(window.scrollY > 600); setColle(window.scrollY > 420) }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -475,10 +561,11 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
     if (!parCat[c]) { parCat[c] = []; categories.push(c) }
     parCat[c].push(p)
   }
-  // Décors de la vitrine (SVG servis depuis /public, sans dépendance réseau).
-  const heroImg = '/hero.svg'
-  const offreImg = '/banniere-sacs.svg'
-  const anivImg = '/banniere-montres.svg'
+  // Décors de la vitrine (photos servies depuis /public, sans dépendance réseau).
+  const heroVideo = '/hero.mp4'          // boucle 16:9 muette du hero
+  const heroImg = '/hero-poster.jpg'     // 1re image : affiche de la vidéo + repli sans animation
+  const offreImg = '/products/cabas-cuir-marron.jpg'
+  const anivImg = '/products/montre-octogonale-doree.jpg'
 
   // Filtrage / tri
   const filtreActif = q.trim() !== '' || cat !== 'all' || sort !== 'reco'
@@ -489,105 +576,104 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
   if (sort === 'asc') filtres = [...filtres].sort((a, b) => a.prix - b.prix)
   else if (sort === 'desc') filtres = [...filtres].sort((a, b) => b.prix - a.prix)
   const reinit = () => { setQ(''); setCat('all'); setSort('reco') }
-  const allerCategorie = (c) => {
-    setCat(c); setQ('')
-    setTimeout(() => document.getElementById('carte')?.scrollIntoView({ behavior: 'smooth' }), 60)
+  const allerCarte = () => document.getElementById('carte')?.scrollIntoView({ behavior: 'smooth' })
+  const allerCategorie = (c) => { setCat(c); setQ(''); setTimeout(allerCarte, 60) }
+  const ouvrirRecherche = () => {
+    allerCarte()
+    setTimeout(() => rechercheRef.current?.querySelector('input')?.focus(), 500)
+  }
+
+  const navProps = {
+    commerce, nbPanier, compte,
+    onCompte: () => compte ? setShowCompte(true) : setShowAuth(true),
+    onPanier: () => setCheckout(true),
+    onRecherche: ouvrirRecherche,
   }
 
   return (
-    <div dir={dirOf(lang)} className="min-h-screen bg-[#f6f3ef] text-stone-800">
+    <div dir={dirOf(lang)} className="min-h-screen bg-white text-black">
       <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
 
-      {/* BARRE SUPÉRIEURE */}
-      <div className="text-[11px] tracking-wide" style={{ background: NOIR, color: '#e9dccb' }}>
-        <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
-          <span className="truncate">🕐 {commerce.horaires || commerce.description}</span>
-          {commerce.telephone && <span className="hidden sm:flex items-center gap-1.5 shrink-0">☎ {commerce.telephone}</span>}
-        </div>
+      <Annonce commerce={commerce} />
+
+      {/* NAV FIXE : apparaît au défilement */}
+      <div className={`fixed inset-x-0 top-0 z-40 transition-transform duration-300 ${colle ? 'translate-y-0' : '-translate-y-full'}`}>
+        <Nav {...navProps} clair={false} />
       </div>
 
-      {/* NAV */}
-      <nav className="border-b border-[#e3ded6] bg-[#f6f3ef]/90 backdrop-blur sticky top-0 z-30">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="flex-1 flex items-center gap-4 sm:gap-6 text-[11px] tracking-[0.2em] uppercase text-stone-600">
-            <a href="#carte" className="hover:text-stone-900">{t('nav_carte')}</a>
-            <a href="#offre" className="hidden sm:inline hover:text-stone-900">{t('nav_offres')}</a>
-          </div>
-          <a href="/" className="text-2xl shrink-0" style={{ color: OR }}>✦</a>
-          <div className="flex-1 flex items-center justify-end gap-2 sm:gap-3">
-            <SelecteurLangue />
-            <button onClick={() => compte ? setShowCompte(true) : setShowAuth(true)}
-                    className="text-[11px] tracking-[0.15em] uppercase text-stone-600 hover:text-stone-900 flex items-center gap-1 whitespace-nowrap">
-              👤 <span className="hidden md:inline">{compte ? compte.nom.split(' ')[0] : t('connexion')}</span>
-            </button>
-            <button onClick={() => setCheckout(true)}
-                    className="text-[11px] tracking-[0.2em] uppercase font-semibold text-white px-4 sm:px-5 py-2 rounded-full flex items-center gap-2 hover:brightness-110 transition"
-                    style={{ background: OR }}>🛒<span className="hidden sm:inline">{t('panier')}</span>{nbPanier > 0 && <span className="bg-white/25 rounded-full px-1.5">{nbPanier}</span>}</button>
-          </div>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <header className="relative h-[70vh] min-h-[460px] flex items-center justify-center overflow-hidden">
-        {heroImg && <img src={heroImg} alt="" className="absolute inset-0 w-full h-full object-cover scale-105" />}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/40" />
-        <div className="relative text-center text-white px-4">
-          <p className="font-serif-display text-5xl md:text-7xl tracking-[0.18em] uppercase drop-shadow-lg">{commerce.nom}</p>
-          <p className="mt-4 tracking-[0.3em] uppercase text-xs md:text-sm text-white/85">{commerce.description || 'Maison de luxe'}</p>
-          <div className="mt-8 flex items-center justify-center gap-4 flex-wrap">
-            <a href="#carte" className="border border-white/80 rounded-full px-8 py-3 text-xs tracking-[0.25em] uppercase hover:bg-white hover:text-stone-800 transition-colors">{t('decouvrir')}</a>
-            <button onClick={() => setCheckout(true)} className="rounded-full px-8 py-3 text-xs tracking-[0.25em] uppercase text-white hover:brightness-110 transition" style={{ background: OR }}>{t('commander')}</button>
+      {/* HERO plein cadre, nav transparente par-dessus */}
+      <header className="relative h-[88vh] min-h-[520px] overflow-hidden" style={{ background: CRAIE }}>
+        <FondHero video={heroVideo} image={heroImg} />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-black/50" />
+        <div className="relative z-10"><Nav {...navProps} clair /></div>
+        <div className="absolute inset-x-0 bottom-0">
+          <div className="max-w-[1400px] mx-auto px-6 sm:px-10 pb-16 sm:pb-20 text-white" style={{ textAlign: 'start' }}>
+            <Surtitre className="opacity-80">{t('hero_sur')}</Surtitre>
+            <Titre taille="text-4xl md:text-6xl" className="mt-4 max-w-2xl">{t('hero_titre')}</Titre>
+            <div className="mt-9 flex flex-wrap items-center gap-4">
+              <button onClick={allerCarte}
+                      className="bg-white text-black px-12 py-4 text-[10px] tracking-[0.3em] uppercase hover:opacity-85 transition-opacity">
+                {t('decouvrir')}
+              </button>
+              <button onClick={() => setCheckout(true)}
+                      className="border border-white/80 px-12 py-4 text-[10px] tracking-[0.3em] uppercase hover:bg-white hover:text-black transition-colors">
+                {t('commander')}
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* 3 CARTES VISUELS */}
-      <section className="max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-3 gap-8">
-        {categories.slice(0, 3).map((c, i) => (
-          <Reveal key={c} delay={i * 90}>
-            <CarteVisuel image={parCat[c][0]?.image_url} titre={tc(lang, 'categorie', c)}
-              texte={`${parCat[c].length} ${t('sec_delices_n')}`} onClick={() => allerCategorie(c)} />
-          </Reveal>
+      {/* BANDE CATÉGORIES plein cadre */}
+      <section className="grid md:grid-cols-3 gap-px" style={{ background: LIGNE }}>
+        {categories.slice(0, 3).map(c => (
+          <TuileCategorie key={c} image={parCat[c][0]?.image_url} titre={tc(lang, 'categorie', c)}
+                          onClick={() => allerCategorie(c)} />
         ))}
       </section>
 
-      {/* BANNIERE OFFRE */}
-      <section id="offre" className="max-w-6xl mx-auto px-4 pb-16">
-        <Reveal>
-          <Banniere image={offreImg} surtitre={t('sec_offre_sur')} titre={t('sec_offre_titre')}
-            texte={t('sec_offre_txt')} cta={t('offre_cta')} />
-        </Reveal>
+      {/* CATALOGUE */}
+      <section id="carte" className="max-w-[1400px] mx-auto px-6 sm:px-10 pt-24 pb-6">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6" style={{ textAlign: 'start' }}>
+          <div>
+            <Surtitre style={{ color: GRIS }}>{t('sec_delices')}</Surtitre>
+            <Titre className="mt-4">{t('sec_carte')}</Titre>
+          </div>
+          {commerce.message_accueil && (
+            <p className="max-w-sm text-xs leading-loose" style={{ color: GRIS }}>{commerce.message_accueil}</p>
+          )}
+        </div>
       </section>
-
-      {/* CARTE : titre + filtres + produits */}
-      <section id="carte" className="max-w-6xl mx-auto px-4 pb-4 text-center">
-        <p className="font-script text-4xl" style={{ color: OR }}>{t('sec_delices')}</p>
-        <h2 className="font-serif-display text-4xl text-stone-800 mt-1">{t('sec_carte')}</h2>
-        <Ornement />
-        {commerce.message_accueil && <p className="font-cormorant italic text-stone-500 max-w-xl mx-auto text-lg">{commerce.message_accueil}</p>}
-      </section>
-      <section className="max-w-6xl mx-auto px-4 pb-16">
-        <BarreFiltres q={q} setQ={setQ} cat={cat} setCat={setCat} sort={sort} setSort={setSort} categories={categories} />
+      <section className="max-w-[1400px] mx-auto px-6 sm:px-10 pb-24">
+        <div ref={rechercheRef}>
+          <BarreFiltres q={q} setQ={setQ} cat={cat} setCat={setCat} sort={sort} setSort={setSort} categories={categories} />
+        </div>
 
         {filtreActif ? (
           filtres.length ? (
             <>
-              <p className="text-center text-xs tracking-[0.2em] uppercase text-stone-400 mb-6">{t('resultats', { n: filtres.length })}</p>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+              <Surtitre className="mb-5" style={{ color: GRIS }}>{t('resultats', { n: filtres.length })}</Surtitre>
+              <div className="grid grid-cols-2 lg:grid-cols-4 border-t border-l" style={{ borderColor: LIGNE }}>
                 {filtres.map(p => <CarteProduit key={p.id} p={p} onAdd={ajouter} onOpen={setFiche} />)}
               </div>
             </>
           ) : (
-            <div className="text-center py-16">
-              <p className="font-cormorant italic text-xl text-stone-400">{t('aucun_produit')}</p>
-              <button onClick={reinit} className="mt-4 text-[11px] tracking-[0.2em] uppercase text-white px-6 py-2 rounded-full" style={{ background: OR }}>{t('reinit')}</button>
+            <div className="py-24 text-center">
+              <Surtitre style={{ color: GRIS }}>{t('aucun_produit')}</Surtitre>
+              <button onClick={reinit} className="mt-6 bg-black text-white px-10 py-3.5 text-[10px] tracking-[0.3em] uppercase hover:opacity-85 transition-opacity">
+                {t('reinit')}
+              </button>
             </div>
           )
         ) : (
           categories.map(c => (
-            <Reveal key={c} className="mb-14">
-              <h3 className="text-center text-sm tracking-[0.3em] uppercase text-stone-400 mb-8">{tc(lang, 'categorie', c)}</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            <Reveal key={c} className="mb-20">
+              <div className="flex items-baseline gap-5 mb-6" style={{ textAlign: 'start' }}>
+                <Surtitre>{tc(lang, 'categorie', c)}</Surtitre>
+                <span className="flex-1 h-px" style={{ background: LIGNE }} />
+                <Surtitre style={{ color: GRIS }}>{parCat[c].length}</Surtitre>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 border-t border-l" style={{ borderColor: LIGNE }}>
                 {parCat[c].map(p => <CarteProduit key={p.id} p={p} onAdd={ajouter} onOpen={setFiche} />)}
               </div>
             </Reveal>
@@ -595,40 +681,59 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
         )}
       </section>
 
-      {/* CONFIANCE */}
+      {/* ÉDITORIAL — MAROQUINERIE */}
+      <div id="offre">
+        <Edito image={offreImg} numero={t('edito_num_1')} titre={t('sec_offre_titre')}
+               texte={t('sec_offre_txt')} cta={t('offre_cta')} />
+      </div>
+
       <BandeConfiance />
 
-      {/* AVIS CLIENTS */}
+      {/* ÉDITORIAL — HORLOGERIE */}
+      <Edito image={anivImg} numero={t('edito_num_2')} titre={t('sec_aniv_titre')}
+             texte={t('sec_aniv_txt')} cta={t('offre_cta')} />
+
       <BandeAvis />
 
-      {/* BANNIERE ANNIVERSAIRE */}
-      <section className="max-w-6xl mx-auto px-4 py-16">
-        <Reveal>
-          <Banniere image={anivImg} droite sombre surtitre={t('sec_aniv_sur')} titre={t('sec_aniv_titre')}
-            texte={t('sec_aniv_txt')} cta={t('offre_cta')} />
-        </Reveal>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="bg-white border-t border-stone-200 py-14">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="text-3xl" style={{ color: OR }}>✦</div>
-          <h4 className="font-serif-display text-2xl text-stone-800 mt-2">{commerce.nom}</h4>
-          <Ornement />
-          <div className="font-cormorant text-stone-500 text-lg space-y-0.5">
-            {commerce.adresse && <p>{commerce.adresse}</p>}
-            {commerce.telephone && <p>{commerce.telephone}</p>}
-            {commerce.horaires && <p>{commerce.horaires}</p>}
+      {/* PIED DE PAGE */}
+      <footer className="bg-black text-white">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-10 py-20 grid md:grid-cols-3 gap-14" style={{ textAlign: 'start' }}>
+          <div>
+            <p className="text-base font-light tracking-[0.42em] uppercase">{commerce.nom}</p>
+            <div className="mt-6 space-y-1.5 text-xs leading-loose text-white/60">
+              {commerce.adresse && <p>{commerce.adresse}</p>}
+              {commerce.telephone && <p>{commerce.telephone}</p>}
+              {commerce.horaires && <p>{commerce.horaires}</p>}
+            </div>
           </div>
-          <p className="mt-8 text-[11px] tracking-[0.15em] uppercase text-stone-400">
-            {t('footer_admin')} : <a href="/admin" className="underline hover:text-stone-600">/admin</a>
-          </p>
+          <div>
+            <Surtitre className="text-white/50">{t('foot_menu')}</Surtitre>
+            <ul className="mt-6 space-y-3 text-[11px] tracking-[0.2em] uppercase">
+              <li><a href="#carte" className="hover:opacity-60 transition-opacity">{t('nav_carte')}</a></li>
+              <li><a href="#offre" className="hover:opacity-60 transition-opacity">{t('nav_offres')}</a></li>
+              <li><a href={TELEGRAM_BOT} target="_blank" rel="noreferrer" className="hover:opacity-60 transition-opacity">Telegram</a></li>
+              <li><a href="/admin" className="hover:opacity-60 transition-opacity">{t('footer_admin')}</a></li>
+            </ul>
+          </div>
+          <div>
+            <Surtitre className="text-white/50">{t('foot_contact')}</Surtitre>
+            <p className="mt-6 text-xs leading-loose text-white/60 max-w-xs">{t('foot_txt')}</p>
+            <Tg className="mt-7 border border-white/40 px-10 py-3.5 text-[10px] tracking-[0.3em] uppercase hover:bg-white hover:text-black">
+              {t('offre_cta')}
+            </Tg>
+          </div>
+        </div>
+        <div className="border-t border-white/10">
+          <div className="max-w-[1400px] mx-auto px-6 sm:px-10 py-6 flex flex-wrap items-center justify-between gap-4">
+            <Surtitre className="text-white/40">© {new Date().getFullYear()} {commerce.nom}</Surtitre>
+            <div className="text-white/60"><SelecteurLangue /></div>
+          </div>
         </div>
       </footer>
 
       {/* Toast ajout au panier */}
       {toast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] bg-stone-900 text-white text-sm px-5 py-3 rounded-full shadow-xl animate-[fadeIn_.25s_ease]">
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[60] bg-black text-white text-[10px] tracking-[0.2em] uppercase px-6 py-3.5 animate-[fadeIn_.25s_ease]">
           {toast}
         </div>
       )}
@@ -636,30 +741,21 @@ function VitrineContenu({ data, panier, setPanier, compte, setCompte }) {
       {/* Retour en haut */}
       {showTop && (
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label={t('retour_haut')}
-                className={`fixed left-5 z-40 w-11 h-11 rounded-full bg-white shadow-lg border border-stone-200 text-stone-600 hover:text-stone-900 hover:-translate-y-0.5 transition flex items-center justify-center ${nbPanier > 0 ? 'bottom-24 sm:bottom-5' : 'bottom-5'}`}>
-          ↑
-        </button>
-      )}
-
-      {/* Bouton panier flottant (desktop / tablette) */}
-      {nbPanier > 0 && (
-        <button onClick={() => setCheckout(true)}
-                className="fixed bottom-5 right-5 z-40 text-white rounded-full shadow-xl px-5 py-4 hidden sm:flex items-center gap-3 font-semibold hover:brightness-110 transition"
-                style={{ background: OR }}>
-          🛒 <span>{nbPanier}</span><span className="opacity-70">·</span><span>{totalPanier} DH</span>
+                className={`fixed left-5 z-40 w-11 h-11 bg-white border text-black hover:bg-black hover:text-white transition-colors flex items-center justify-center ${nbPanier > 0 ? 'bottom-24 sm:bottom-5' : 'bottom-5'}`}
+                style={{ borderColor: LIGNE }}>
+          <Icone nom="haut" />
         </button>
       )}
 
       {/* Barre panier collante (mobile) */}
       {nbPanier > 0 && !checkout && (
-        <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 bg-white/95 backdrop-blur border-t border-[#e3ded6] px-4 py-3 flex items-center gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-          <div className="flex-1 leading-tight">
-            <div className="text-[11px] uppercase tracking-wider text-stone-500">{t('nb_articles', { n: nbPanier })}</div>
-            <div className="font-serif-display text-lg" style={{ color: OR }}>{totalPanier} DH</div>
+        <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 bg-white border-t px-5 py-3 flex items-center gap-4" style={{ borderColor: LIGNE }}>
+          <div className="flex-1 leading-tight" style={{ textAlign: 'start' }}>
+            <Surtitre style={{ color: GRIS }}>{t('nb_articles', { n: nbPanier })}</Surtitre>
+            <div className="text-xs tracking-[0.18em] uppercase mt-1">{totalPanier} DH</div>
           </div>
           <button onClick={() => setCheckout(true)}
-                  className="text-white text-xs font-semibold tracking-[0.15em] uppercase px-6 py-3 rounded-full flex items-center gap-2 hover:brightness-110 active:scale-95 transition"
-                  style={{ background: OR }}>🛒 {t('commander')}</button>
+                  className="bg-black text-white text-[10px] tracking-[0.28em] uppercase px-8 py-3.5">{t('commander')}</button>
         </div>
       )}
 
@@ -695,11 +791,11 @@ export default function Vitrine() {
   return (
     <LangContext.Provider value={ctx}>
       {erreur ? (
-        <div className="min-h-screen flex items-center justify-center text-stone-500">😔 {erreur}</div>
+        <div className="min-h-screen flex items-center justify-center text-[11px] tracking-[0.2em] uppercase">{erreur}</div>
       ) : !data ? (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#f6f3ef]">
-          <div className="w-10 h-10 border-2 border-stone-300 border-t-[#b4914f] rounded-full animate-spin" />
-          <span className="font-cormorant italic text-stone-400 text-xl">Chargement de la boutique…</span>
+        <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-white">
+          <div className="w-8 h-8 border border-stone-200 border-t-black rounded-full animate-spin" />
+          <span className="text-[10px] tracking-[0.3em] uppercase" style={{ color: GRIS }}>Chargement</span>
         </div>
       ) : (
         <VitrineContenu data={data} panier={panier} setPanier={setPanier} compte={compte} setCompte={setCompte} />

@@ -67,30 +67,35 @@ def historique_conversation(db: Session, conversation_id: int, limite: int) -> l
 
 # Alias de recherche : darija (lettres latines) + arabe -> nom canonique du produit.
 # Sert de repli quand le client nomme un produit dans une autre écriture que le nom du catalogue
-# (ex. « ساعة » ou « magana » -> Montre automatique acier), pour éviter les faux « produit non vendu ».
+# (ex. « ساعة » ou « magana » -> Montre ovale dorée), pour éviter les faux « produit non vendu ».
 _ALIAS_RECHERCHE = {
     # Vêtements
-    "mantou": "Trench en cachemire", "trench": "Trench en cachemire",
-    "منطو": "Trench en cachemire", "معطف": "Trench en cachemire",
-    "kostum": "Blazer croisé en laine", "blazer": "Blazer croisé en laine",
-    "كوستيم": "Blazer croisé en laine", "سترة": "Blazer croisé en laine",
-    "robe": "Robe de soirée en soie", "فستان": "Robe de soirée en soie",
-    "caftan": "Caftan brodé main", "kaftan": "Caftan brodé main",
-    "qaftan": "Caftan brodé main", "قفطان": "Caftan brodé main",
+    "mantou": "Manteau long en laine ivoire", "manteau": "Manteau long en laine ivoire",
+    "منطو": "Manteau long en laine ivoire", "معطف": "Manteau long en laine ivoire",
+    "kostum": "Blazer croisé boutons dorés", "blazer": "Blazer croisé boutons dorés",
+    "كوستيم": "Blazer croisé boutons dorés", "سترة": "Blazer croisé boutons dorés",
+    "robe": "Robe longue satin cacao", "فستان": "Robe longue satin cacao",
+    "caftan": "Caftan satin perle", "kaftan": "Caftan satin perle",
+    "qaftan": "Caftan satin perle", "قفطان": "Caftan satin perle",
+    "trico": "Pull maille bordeaux", "pull": "Pull maille bordeaux",
+    "تريكو": "Pull maille bordeaux",
+    "blouza": "Blouse lavallière satin beige", "blouse": "Blouse lavallière satin beige",
+    "بلوزة": "Blouse lavallière satin beige",
     # Sacs
-    "sak": "Sac à main cuir grainé", "chkara": "Sac à main cuir grainé",
-    "شكارة": "Sac à main cuir grainé", "حقيبة يد": "Sac à main cuir grainé",
-    "cabas": "Cabas en cuir camel", "كابا": "Cabas en cuir camel",
-    "pochette": "Pochette de soirée satin", "محفظة": "Pochette de soirée satin",
-    "sac a dos": "Sac à dos cuir nappa", "sac à dos": "Sac à dos cuir nappa",
-    "حقيبة ظهر": "Sac à dos cuir nappa",
+    "sak": "Sac à main cuir grainé chocolat", "chkara": "Sac à main cuir grainé chocolat",
+    "شكارة": "Sac à main cuir grainé chocolat", "حقيبة يد": "Sac à main cuir grainé chocolat",
+    "cabas": "Cabas cuir marron et twilly", "كابا": "Cabas cuir marron et twilly",
+    "trapeze": "Sac trapèze cuir camel", "حقيبة كاميل": "Sac trapèze cuir camel",
+    "sak sghir": "Mini sac bordeaux", "حقيبة صغيرة": "Mini sac bordeaux",
     # Montres
-    "magana": "Montre automatique acier", "ماكانة": "Montre automatique acier",
-    "ماگانة": "Montre automatique acier", "ساعة": "Montre automatique acier",
-    "chrono": "Chronographe or rose", "كرونو": "Chronographe or rose",
-    "squelette": "Montre squelette cuir", "هيكلية": "Montre squelette cuir",
-    "nacre": "Montre femme nacre", "عرق اللؤلؤ": "Montre femme nacre",
+    "magana": "Montre ovale dorée", "ماكانة": "Montre ovale dorée",
+    "ماگانة": "Montre ovale dorée", "ساعة": "Montre ovale dorée",
+    "dyamant": "Montre joaillière sertie", "مرصعة": "Montre joaillière sertie",
+    "jonc": "Coffret montre bicolore et jonc", "brasslet": "Coffret montre bicolore et jonc",
+    "إسورة": "Coffret montre bicolore et jonc",
+    "octogonale": "Montre octogonale dorée", "مثمنة": "Montre octogonale dorée",
 }
+
 
 
 def chercher_produits(db: Session, terme: str) -> list[models.Produit]:

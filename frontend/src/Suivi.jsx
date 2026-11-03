@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { ContactFlottant } from './Contact.jsx'
 
-const OR = '#8a5a34'
+const OR = '#0b0b0b'
 const L = window.L
 
 function icone(emoji, taille = 34) {
@@ -85,32 +85,32 @@ export default function Suivi() {
   }, [data])
 
   if (erreur) return <Centre>😔 {erreur} — <a href="/" className="underline">retour à la boutique</a></Centre>
-  if (!data) return <Centre><span className="font-cormorant italic text-xl text-stone-400">Chargement du suivi…</span></Centre>
+  if (!data) return <Centre><span className="text-[10px] tracking-[0.3em] uppercase text-stone-400">Chargement du suivi…</span></Centre>
 
   const livree = data.suivi_livraison === 'livree' || data.statut === 'recuperee'
 
   return (
-    <div className="min-h-screen bg-[#f7efe3] text-stone-800">
+    <div className="min-h-screen bg-white text-black">
       <header className="bg-white border-b border-stone-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <a href="/" className="font-serif-display text-lg tracking-[0.12em] uppercase">✦ Maison Noor</a>
-          <span className="text-sm text-stone-500">Commande #{data.id}</span>
+          <a href="/" className="text-sm font-light tracking-[0.42em] uppercase">Maison Noor</a>
+          <span className="text-[10px] tracking-[0.25em] uppercase text-stone-500">Commande #{data.id}</span>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <p className="font-script text-4xl" style={{ color: OR }}>
+        <div className="text-center mb-12">
+          <p className="text-[10px] tracking-[0.32em] uppercase text-stone-500">
             {livree ? 'Merci !' : data.mode === 'livraison' ? 'En route vers vous' : 'Votre commande'}
           </p>
-          <h1 className="font-serif-display text-2xl mt-1">
-            {data.mode === 'livraison' ? '🛵 Livraison à domicile' : '🏪 Retrait en boutique'}
+          <h1 className="text-2xl font-light tracking-[0.14em] uppercase mt-4">
+            {data.mode === 'livraison' ? 'Livraison à domicile' : 'Retrait en boutique'}
           </h1>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Étapes + récap */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
+          <div className="bg-white border border-[#e3e1dd] p-7">
             <h2 className="font-semibold text-stone-700 mb-4 uppercase tracking-wider text-xs">Suivi</h2>
             <Timeline etapes={data.etapes} mode={data.mode} />
             <div className="mt-6 pt-4 border-t border-stone-100">
@@ -124,8 +124,8 @@ export default function Suivi() {
                 <span>Total</span><span style={{ color: OR }}>{data.total} DH</span>
               </div>
               {data.mode === 'retrait' && !livree && (
-                <p className="mt-4 text-sm text-emerald-700 bg-emerald-50 rounded-lg p-3">
-                  🔔 Vous serez notifié dès que votre commande est prête — pas de file d'attente.
+                <p className="mt-4 text-xs leading-loose text-stone-600 border border-[#e3e1dd] p-4">
+                  Vous serez notifié dès que votre commande est prête — pas de file d'attente.
                 </p>
               )}
             </div>
@@ -133,13 +133,12 @@ export default function Suivi() {
 
           {/* Carte (livraison) */}
           {data.mode === 'livraison' ? (
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-[#e3e1dd] overflow-hidden">
               <div ref={mapDiv} style={{ height: '100%', minHeight: 360 }} />
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col items-center justify-center text-center">
-              <div className="text-6xl mb-3">🏪</div>
-              <p className="font-cormorant italic text-lg text-stone-500">
+            <div className="bg-white border border-[#e3e1dd] p-7 flex flex-col items-center justify-center text-center">
+                            <p className="text-sm leading-loose text-stone-500">
                 Récupérez votre commande à la boutique dès qu'elle est prête.
               </p>
             </div>
