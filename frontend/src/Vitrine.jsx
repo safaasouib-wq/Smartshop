@@ -175,14 +175,32 @@ function FicheProduit({ p, onAdd, onClose }) {
 // Fond du hero : boucle vidéo muette (16:9) avec repli sur la photo
 // si le mouvement est désactivé par le système ou si la vidéo ne charge pas.
 function FondHero({ video, image }) {
-  const [fige, setFige] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia
-      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false)
-  if (fige || !video) {
+  const ref = useRef(null)
+  const [fige, setFige] = useState(!video)
+  useEffect(() => {
+    const v = ref.current
+    if (!v) return
+    // React n'écrit pas toujours l'attribut `muted` dans le DOM : sans lui, le navigateur
+    // refuse la lecture automatique et le hero reste figé sur l'affiche. On le force ici,
+    // puis on relance la lecture au premier geste du visiteur si elle a été bloquée.
+    v.muted = true
+    v.defaultMuted = true
+    const lancer = () => v.play().catch(() => {})
+    lancer()
+    const surGeste = () => { lancer(); retirer() }
+    const retirer = () => {
+      window.removeEventListener('pointerdown', surGeste)
+      window.removeEventListener('scroll', surGeste)
+    }
+    window.addEventListener('pointerdown', surGeste, { once: true })
+    window.addEventListener('scroll', surGeste, { once: true, passive: true })
+    return retirer
+  }, [])
+  if (fige) {
     return <img src={image} alt="" className="absolute inset-0 w-full h-full object-cover" />
   }
   return (
-    <video src={video} poster={image} autoPlay muted loop playsInline preload="auto"
+    <video ref={ref} src={video} poster={image} autoPlay muted loop playsInline preload="auto"
            onError={() => setFige(true)} aria-hidden="true"
            className="absolute inset-0 w-full h-full object-cover" />
   )
