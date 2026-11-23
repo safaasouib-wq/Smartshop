@@ -35,3 +35,6 @@ frontend/.vite/
 Thumbs.db
 *.log
 *.db.bak-*
+
+# === Configuration locale des outils (non versionnee) ===
+.claude/
